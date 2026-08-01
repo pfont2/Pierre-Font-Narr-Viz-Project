@@ -154,7 +154,7 @@
                 country: getVal(d, "Country Name"),
                 value: +getVal(d, "Value"),
                 region: getVal(d, "Region"),
-                income: getVal(d, "Income Group")
+                income: (getVal(d, "Income Group") || "").trim()
             };
         });
 
