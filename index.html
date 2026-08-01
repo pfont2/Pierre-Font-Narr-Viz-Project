@@ -454,15 +454,108 @@ function renderScene2() {
         .call(makeAnnotations2);
 }
 
-    // ==========================================
-    // SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
-    // ==========================================
-    function renderScene3() {
-        d3.select("#scene-title").text("Scene 3: Energy Efficiency vs. Renewable Output (2021)");
-        d3.select("#scene-description").text(
-            "High renewable adoption spans across nations regardless of economic efficiency. Hover over circles to inspect individual country stats."
-        );
-    }
+// ==========================================
+// SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
+// ==========================================
+function renderScene3() {
+    d3.select("#scene-title").text("Scene 3: Energy Efficiency vs. Renewable Output (2021)");
+    d3.select("#scene-description").text(
+        "High renewable adoption spans across nations regardless of economic efficiency. Hover over circles to explore individual country specifics."
+    );
+
+    var x3 = d3.scaleLinear()
+        .domain([0, d3.max(data3_scatter, function(d) { return d.gdp_per_energy; }) * 1.05])
+        .range([0, width]);
+
+    var y3 = d3.scaleLinear()
+        .domain([0, d3.max(data3_scatter, function(d) { return d.renewable_pct; }) * 1.05])
+        .range([height - 20, 0]);
+
+    var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var g = svg.append("g")
+        .attr("transform", "translate(10, 10)");
+
+    // Draw Scatterplot Circles
+    g.selectAll("circle")
+        .data(data3_scatter)
+        .enter()
+        .append("circle")
+            .attr("cx", function(d) { return x3(d.gdp_per_energy); })
+            .attr("cy", function(d) { return y3(d.renewable_pct); })
+            .attr("r", 6)
+            .attr("fill", function(d) { return colorRegion(d.region); })
+            .attr("stroke", "black")
+            .attr("opacity", 0.75)
+            // TOOLTIP MOUSE EVENTS
+            .on("mouseover", function(d) {
+                d3.select(this)
+                    .attr("r", 10)
+                    .attr("opacity", 1);
+
+                tooltip.transition().duration(100).style("opacity", 0.95);
+                tooltip.html(
+                    "<strong>" + d.country + "</strong><br/>" +
+                    "Region: " + d.region + "<br/>" +
+                    "Income: " + d.income + "<br/>" +
+                    "Renewables: " + d.renewable_pct.toFixed(1) + "%<br/>" +
+                    "GDP / Energy: $" + d.gdp_per_energy.toFixed(1)
+                )
+                .style("left", (d3.event.pageX + 12) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+            })
+            .attr("cursor", "pointer")
+            .on("mouseout", function() {
+                d3.select(this)
+                    .attr("r", 6)
+                    .attr("opacity", 0.75);
+
+                tooltip.transition().duration(200).style("opacity", 0);
+            });
+
+    // Axes
+    g.append("g")
+        .attr("transform", "translate(0," + (height - 20) + ")")
+        .call(d3.axisBottom(x3));
+
+    g.append("g")
+        .call(d3.axisLeft(y3));
+
+    // Axis Labels
+    g.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + 20)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "11px")
+        .text("GDP Per Unit of Energy Use (PPP 2021 $)");
+
+    g.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -40)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "11px")
+        .text("Renewable Electricity Output (% of total)");
+
+    // Legend for Regions in Scene 3
+    var regions = colorRegion.domain();
+    var legend = g.selectAll(".legend-scatter")
+        .data(regions)
+        .enter()
+        .append("g")
+            .attr("transform", function(d, i) { return "translate(" + (width - 150) + "," + (i * 18 + 10) + ")"; });
+
+    legend.append("rect")
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", function(d) { return colorRegion(d); });
+
+    legend.append("text")
+        .attr("x", 14)
+        .attr("y", 9)
+        .attr("font-size", "10px")
+        .text(function(d) { return d; });
+}
 </script>
 
 </body>
