@@ -58,6 +58,25 @@
             stroke: #333;
             stroke-width: 0.5px;
         }
+        .annotation-group .annotation-note-label {
+            font-size: 10px;
+            line-height: 1.25;
+        }
+
+        .annotation-group .annotation-note-title {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .annotation-group .annotation-note-bg {
+            fill: white;
+            fill-opacity: 0.92;
+        }
+
+        .annotation-group .connector,
+        .annotation-group .annotation-subject {
+        stroke: #444;
+        }
         circle { 
             stroke: black; 
             opacity: 0.8; 
@@ -277,13 +296,15 @@ function renderScene1() {
     var annotations1A = [
         {
             note: {
-                label: "Europe & Central Asia leads regional adoption (~17.3% in 2021).",
-                title: "Regional Leader"
+                label: "Europe & Central Asia leads regional adoption, reaching about 17.3% in 2021.",
+                title: "Regional Leader",
+                wrap: 140,
+                padding: 8
             },
             x: x1(2021),
             y: y1(17.3),
-            dx: -220,
-            dy: -60
+            dx: 18,
+            dy: -28
         }
     ];
 
@@ -363,17 +384,19 @@ function renderScene1() {
         .attr("font-size", "10px")
         .text(function(d) { return d.key; });
 
-    // ANNOTATION 1B (Positioned in open white space)
+    // ANNOTATION 1B
     var annotations1B = [
         {
             note: {
-                label: "High-income economies drive adoption (>14%), while low-income nations lag near 0%.",
-                title: "Income Gap"
+                label: "High-income economies exceed 14%, while low-income economies remain near zero.",
+                title: "Income Gap",
+                wrap: 140,
+                padding: 8
             },
             x: x2(2021),
             y: y2(14.0),
-            dx: -220,
-            dy: -50
+            dx: 18,
+            dy: -28
         }
     ];
 
@@ -421,9 +444,14 @@ function renderScene2() {
 
     var adjWidth = width - 120;
 
+    var barAreaWidth = adjWidth - 45;
+
     var x2 = d3.scaleLinear()
         .domain([0, d3.max(data2_bars, function(d) { return d.value; })])
-        .range([0, adjWidth - 20]);
+        .nice()
+        .range([0, barAreaWidth]);
+
+    var annotationPanelX = barAreaWidth + 20;
 
     // Draw Bars colored by Income Group
     g.selectAll(".bar")
@@ -466,11 +494,19 @@ function renderScene2() {
         .text("Metric Tons CO2e Per Capita (2021)");
 
     // Legend for Scene 2
+    var scene2IncomeGroups = colorIncome.domain().filter(function(group) {
+        return data2_bars.some(function(d) {
+            return d.income === group;
+        });
+    });
+
     var legend2 = g.selectAll(".legend-s2")
-        .data(colorIncome.domain())
+        .data(scene2IncomeGroups)
         .enter()
         .append("g")
-            .attr("transform", function(d, i) { return "translate(" + (adjWidth - 140) + "," + (height - 60 + (i * 20)) + ")"; });
+        .attr("transform", function(d, i) {
+            return "translate(" + (adjWidth + 15) + "," + (height - 65 + i * 20) + ")";
+        });
 
     legend2.append("rect")
         .attr("width", 12)
