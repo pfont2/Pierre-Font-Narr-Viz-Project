@@ -403,8 +403,18 @@ function renderScene2() {
         .padding(0.2);
 
     var colorIncome = d3.scaleOrdinal()
-        .domain(["High income", "Upper middle income"])
-        .range(["#007bff", "#ff9900"]); // Blue for High Income, Orange for Upper Middle
+    .domain([
+        "High income",
+        "Upper middle income",
+        "Lower middle income",
+        "Low income"
+    ])
+    .range([
+        "#2f6f9f",
+        "#e28e2c",
+        "#59a14f",
+        "#b07aa1"
+    ]);
 
     var g = svg.append("g")
         .attr("transform", "translate(120, 10)");
