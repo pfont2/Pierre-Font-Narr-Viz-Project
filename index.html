@@ -498,9 +498,10 @@ function renderScene3() {
                     "Income: " + d.income + "<br/>" +
                     "Renewables: " + d.renewable_pct.toFixed(1) + "%<br/>" +
                     "GDP / Energy: $" + d.gdp_per_energy.toFixed(1)
-                )
-                .style("left", (d3.event.pageX + 12) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
+                    )
+                
+                .style("left", (d3.event.offsetX + 15) + "px")
+                .style("top", (d3.event.offsetY - 35) + "px");
             })
             .attr("cursor", "pointer")
             .on("mouseout", function() {
