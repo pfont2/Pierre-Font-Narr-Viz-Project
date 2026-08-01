@@ -154,12 +154,14 @@ function renderScene1() {
         "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe & Central Asia geographically, and High-Income nations economically."
     );
 
-    // Height for each sub-chart
-    var subHeight = 180;
+    // Ensure main SVG canvas height is large enough for both charts
+    d3.select("#chart-container svg").attr("height", 520);
+
+    var subHeight = 160; // Height of each sub-chart
 
     // --- CHART 1A: REGIONAL TRENDS (TOP) ---
     var g1 = svg.append("g")
-        .attr("transform", "translate(0,0)");
+        .attr("transform", "translate(0, 20)");
 
     // X and Y Scales for Chart 1A
     var x1 = d3.scaleLinear()
@@ -170,7 +172,6 @@ function renderScene1() {
         .domain([0, d3.max(data1_region, function(d) { return +d.Value; })])
         .range([subHeight, 0]);
 
-    // Color Scale for Regions
     var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
 
     // Group data by Country Name (Region) using d3.nest()
@@ -188,7 +189,8 @@ function renderScene1() {
         .data(nestedRegion)
         .enter()
         .append("path")
-            .attr("class", "line-path")
+            .attr("fill", "none")
+            .attr("stroke-width", "2.5px")
             .attr("d", function(d) { return lineGenerator1(d.values); })
             .attr("stroke", function(d) { return colorRegion(d.key); });
 
@@ -203,9 +205,9 @@ function renderScene1() {
     // Title for Chart 1A
     g1.append("text")
         .attr("x", 0)
-        .attr("y", -10)
+        .attr("y", -8)
         .attr("font-weight", "bold")
-        .attr("font-size", "14px")
+        .attr("font-size", "13px")
         .text("Renewable Adoption (% of Total) by Region");
 
     // Add Legend for Region Lines
@@ -213,18 +215,18 @@ function renderScene1() {
         .data(nestedRegion)
         .enter()
         .append("g")
-            .attr("transform", function(d, i) { return "translate(" + (width + 15) + "," + (i * 20) + ")"; });
+            .attr("transform", function(d, i) { return "translate(" + (width + 10) + "," + (i * 18) + ")"; });
 
     legend1.append("rect")
-        .attr("width", 12)
-        .attr("height", 12)
+        .attr("width", 10)
+        .attr("height", 10)
         .attr("fill", function(d) { return colorRegion(d.key); })
         .attr("stroke", "none");
 
     legend1.append("text")
-        .attr("x", 18)
-        .attr("y", 10)
-        .attr("font-size", "11px")
+        .attr("x", 14)
+        .attr("y", 9)
+        .attr("font-size", "10px")
         .text(function(d) { return d.key; });
 
 
@@ -241,8 +243,9 @@ function renderScene1() {
         .domain([0, d3.max(data1_income, function(d) { return +d.Value; })])
         .range([subHeight, 0]);
 
-    // Color Scale for Income Groups
-    var colorIncome = d3.scaleOrdinal(d3.schemeDark2);
+    // Safe color array for Income Groups (avoiding schemeDark2 error)
+    var colorIncome = d3.scaleOrdinal()
+        .range(["#d95f02", "#7570b3", "#e7298a", "#66a61e"]);
 
     // Group data by Income Group using d3.nest()
     var nestedIncome = d3.nest()
@@ -259,7 +262,8 @@ function renderScene1() {
         .data(nestedIncome)
         .enter()
         .append("path")
-            .attr("class", "line-path")
+            .attr("fill", "none")
+            .attr("stroke-width", "2.5px")
             .attr("d", function(d) { return lineGenerator2(d.values); })
             .attr("stroke", function(d) { return colorIncome(d.key); });
 
@@ -274,9 +278,9 @@ function renderScene1() {
     // Title for Chart 1B
     g2.append("text")
         .attr("x", 0)
-        .attr("y", -10)
+        .attr("y", -8)
         .attr("font-weight", "bold")
-        .attr("font-size", "14px")
+        .attr("font-size", "13px")
         .text("Renewable Adoption (% of Total) by Income Group");
 
     // Add Legend for Income Lines
@@ -284,18 +288,18 @@ function renderScene1() {
         .data(nestedIncome)
         .enter()
         .append("g")
-            .attr("transform", function(d, i) { return "translate(" + (width + 15) + "," + (i * 20) + ")"; });
+            .attr("transform", function(d, i) { return "translate(" + (width + 10) + "," + (i * 18) + ")"; });
 
     legend2.append("rect")
-        .attr("width", 12)
-        .attr("height", 12)
+        .attr("width", 10)
+        .attr("height", 10)
         .attr("fill", function(d) { return colorIncome(d.key); })
         .attr("stroke", "none");
 
     legend2.append("text")
-        .attr("x", 18)
-        .attr("y", 10)
-        .attr("font-size", "11px")
+        .attr("x", 14)
+        .attr("y", 9)
+        .attr("font-size", "10px")
         .text(function(d) { return d.key; });
 
 
@@ -303,13 +307,13 @@ function renderScene1() {
     var annotations1 = [
         {
             note: {
-                label: "Europe & Central Asia leads global growth, reaching over 17% in 2021.",
+                label: "Europe & Central Asia leads global growth, reaching ~17% in 2021.",
                 title: "Rapid Growth"
             },
             x: x1(2020),
             y: y1(17.6),
-            dx: -60,
-            dy: 10
+            dx: -50,
+            dy: 20
         }
     ];
 
