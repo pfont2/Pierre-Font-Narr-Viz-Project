@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <title>The Global Energy & Climate Pivot</title>
 
-    <!-- D3 Library (v5 to match your experience) -->
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <!-- d3-annotation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
 
     <style>
@@ -46,12 +44,12 @@
             height: 520px;
             position: relative;
         }
-        /* Style for SVG Elements matching your preferred style */
+        
         rect { fill: lightblue; stroke: black; }
         circle { stroke: black; opacity: 0.8; }
         path.line-path { fill: none; stroke-width: 2.5px; }
 
-        /* Simple Tooltip Styling for Scene 3 */
+       
         .tooltip {
             position: absolute;
             padding: 8px;
@@ -71,14 +69,14 @@
     <h1 id="scene-title">The Global Energy & Climate Pivot</h1>
     <p id="scene-description">Loading project data...</p>
 
-    <!-- Triggers (Navigation Buttons) -->
+    
     <div class="nav-buttons">
         <button id="btn-1" class="active" onclick="goToScene(1)">1. Renewable Trends</button>
         <button id="btn-2" onclick="goToScene(2)">2. CO2 Emissions Leaders</button>
         <button id="btn-3" onclick="goToScene(3)">3. Efficiency vs. Renewables</button>
     </div>
 
-    <!-- Chart SVG Container -->
+    
     <div id="chart-container">
         <div id="tooltip" class="tooltip"></div>
     </div>
