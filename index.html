@@ -427,17 +427,17 @@ function renderScene2() {
 
     // Draw Bars colored by Income Group
     g.selectAll(".bar")
-        .data(data2_bars)
-        .enter()
-        .append("rect")
-            .attr("class", "bar-rect")
-            .attr("y", function(d) { return y2(d.country); })
-            .attr("height", y2.bandwidth())
-            .attr("x", 0)
-            .attr("width", function(d) { return x2(d.value); })
-            .attr("fill", function(d) { return colorIncome(d.income); })
-            .attr("stroke", "#333")
-            .attr("stroke-width", "0.5px");
+    .data(data2_bars)
+    .enter()
+    .append("rect")
+        .attr("class", "bar-rect")
+        .attr("y", function(d) { return y2(d.country); })
+        .attr("height", y2.bandwidth())
+        .attr("x", 0)
+        .attr("width", function(d) { return x2(d.value); })
+        .style("fill", function(d) {
+            return colorIncome(d.income) || "#999";
+        });
 
     // Add Value Labels
     g.selectAll(".val-label")
