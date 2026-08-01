@@ -120,41 +120,52 @@
 
     var tooltip = d3.select("#tooltip");
 
-    // INITIALIZATION FUNCTION: Loads and explicitly parses numbers
+    // HELPER FUNCTION: Safely reads object properties ignoring hidden BOM characters
+    function getVal(d, keyName) {
+        var keys = Object.keys(d);
+        for (var i = 0; i < keys.length; i++) {
+            if (keys[i].trim().replace(/^\ufeff/, "") === keyName) {
+                return d[keys[i]];
+            }
+        }
+        return d[keyName];
+    }
+
+    // INITIALIZATION FUNCTION: Loads CSV files safely
     async function init() {
         data1_region = await d3.csv("scene1_lines1.csv", function(d) {
             return {
-                country: d["Country Name"],
-                year: +d["Year"],
-                value: +d["Value"]
+                country: getVal(d, "Country Name"),
+                year: +getVal(d, "Year"),
+                value: +getVal(d, "Value")
             };
         });
 
         data1_income = await d3.csv("scene1_lines2.csv", function(d) {
             return {
-                country: d["Country Name"],
-                year: +d["Year"],
-                value: +d["Value"]
+                country: getVal(d, "Country Name"),
+                year: +getVal(d, "Year"),
+                value: +getVal(d, "Value")
             };
         });
 
         data2_bars = await d3.csv("scene2_bars.csv", function(d) {
             return {
-                country: d["Country Name"],
-                value: +d["Value"],
-                region: d["Region"],
-                income: d["Income Group"]
+                country: getVal(d, "Country Name"),
+                value: +getVal(d, "Value"),
+                region: getVal(d, "Region"),
+                income: getVal(d, "Income Group")
             };
         });
 
         data3_scatter = await d3.csv("scene3_scatter.csv", function(d) {
             return {
-                country: d["Country Name"],
-                year: +d["Year"],
-                renewable_pct: Math.max(0, +d["renewable_pct"]),
-                gdp_per_energy: +d["gdp_per_energy"],
-                region: d["Region"],
-                income: d["Income Group"]
+                country: getVal(d, "Country Name"),
+                year: +getVal(d, "Year"),
+                renewable_pct: Math.max(0, +getVal(d, "renewable_pct")),
+                gdp_per_energy: +getVal(d, "gdp_per_energy"),
+                region: getVal(d, "Region"),
+                income: getVal(d, "Income Group")
             };
         });
 
