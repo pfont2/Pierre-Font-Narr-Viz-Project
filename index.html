@@ -145,17 +145,181 @@
         }
     }
 
-    // ==========================================
-    // SCENE 1: RENEWABLE ADOPTION TRENDS
-    // ==========================================
-    function renderScene1() {
-        d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990–2021)");
-        d3.select("#scene-description").text(
-            "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe and High-Income economy groups."
-        );
+// ==========================================
+// SCENE 1: RENEWABLE ADOPTION TRENDS
+// ==========================================
+function renderScene1() {
+    d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990–2021)");
+    d3.select("#scene-description").text(
+        "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe & Central Asia geographically, and High-Income nations economically."
+    );
 
-        // We will build two stacked line charts here in the next step!
-    }
+    // Height for each sub-chart
+    var subHeight = 180;
+
+    // --- CHART 1A: REGIONAL TRENDS (TOP) ---
+    var g1 = svg.append("g")
+        .attr("transform", "translate(0,0)");
+
+    // X and Y Scales for Chart 1A
+    var x1 = d3.scaleLinear()
+        .domain(d3.extent(data1_region, function(d) { return +d.Year; }))
+        .range([0, width]);
+
+    var y1 = d3.scaleLinear()
+        .domain([0, d3.max(data1_region, function(d) { return +d.Value; })])
+        .range([subHeight, 0]);
+
+    // Color Scale for Regions
+    var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
+
+    // Group data by Country Name (Region) using d3.nest()
+    var nestedRegion = d3.nest()
+        .key(function(d) { return d["Country Name"]; })
+        .entries(data1_region);
+
+    // Line generator function
+    var lineGenerator1 = d3.line()
+        .x(function(d) { return x1(+d.Year); })
+        .y(function(d) { return y1(+d.Value); });
+
+    // Draw lines for each region
+    g1.selectAll(".line-region")
+        .data(nestedRegion)
+        .enter()
+        .append("path")
+            .attr("class", "line-path")
+            .attr("d", function(d) { return lineGenerator1(d.values); })
+            .attr("stroke", function(d) { return colorRegion(d.key); });
+
+    // Add Axes for Chart 1A
+    g1.append("g")
+        .attr("transform", "translate(0," + subHeight + ")")
+        .call(d3.axisBottom(x1).tickFormat(d3.format("d")));
+
+    g1.append("g")
+        .call(d3.axisLeft(y1).ticks(5));
+
+    // Title for Chart 1A
+    g1.append("text")
+        .attr("x", 0)
+        .attr("y", -10)
+        .attr("font-weight", "bold")
+        .attr("font-size", "14px")
+        .text("Renewable Adoption (% of Total) by Region");
+
+    // Add Legend for Region Lines
+    var legend1 = g1.selectAll(".legend-region")
+        .data(nestedRegion)
+        .enter()
+        .append("g")
+            .attr("transform", function(d, i) { return "translate(" + (width + 15) + "," + (i * 20) + ")"; });
+
+    legend1.append("rect")
+        .attr("width", 12)
+        .attr("height", 12)
+        .attr("fill", function(d) { return colorRegion(d.key); })
+        .attr("stroke", "none");
+
+    legend1.append("text")
+        .attr("x", 18)
+        .attr("y", 10)
+        .attr("font-size", "11px")
+        .text(function(d) { return d.key; });
+
+
+    // --- CHART 1B: INCOME GROUP TRENDS (BOTTOM) ---
+    var g2 = svg.append("g")
+        .attr("transform", "translate(0, 240)"); // Positioned below top chart
+
+    // X and Y Scales for Chart 1B
+    var x2 = d3.scaleLinear()
+        .domain(d3.extent(data1_income, function(d) { return +d.Year; }))
+        .range([0, width]);
+
+    var y2 = d3.scaleLinear()
+        .domain([0, d3.max(data1_income, function(d) { return +d.Value; })])
+        .range([subHeight, 0]);
+
+    // Color Scale for Income Groups
+    var colorIncome = d3.scaleOrdinal(d3.schemeDark2);
+
+    // Group data by Income Group using d3.nest()
+    var nestedIncome = d3.nest()
+        .key(function(d) { return d["Country Name"]; })
+        .entries(data1_income);
+
+    // Line generator for Chart 1B
+    var lineGenerator2 = d3.line()
+        .x(function(d) { return x2(+d.Year); })
+        .y(function(d) { return y2(+d.Value); });
+
+    // Draw lines for each income group
+    g2.selectAll(".line-income")
+        .data(nestedIncome)
+        .enter()
+        .append("path")
+            .attr("class", "line-path")
+            .attr("d", function(d) { return lineGenerator2(d.values); })
+            .attr("stroke", function(d) { return colorIncome(d.key); });
+
+    // Add Axes for Chart 1B
+    g2.append("g")
+        .attr("transform", "translate(0," + subHeight + ")")
+        .call(d3.axisBottom(x2).tickFormat(d3.format("d")));
+
+    g2.append("g")
+        .call(d3.axisLeft(y2).ticks(5));
+
+    // Title for Chart 1B
+    g2.append("text")
+        .attr("x", 0)
+        .attr("y", -10)
+        .attr("font-weight", "bold")
+        .attr("font-size", "14px")
+        .text("Renewable Adoption (% of Total) by Income Group");
+
+    // Add Legend for Income Lines
+    var legend2 = g2.selectAll(".legend-income")
+        .data(nestedIncome)
+        .enter()
+        .append("g")
+            .attr("transform", function(d, i) { return "translate(" + (width + 15) + "," + (i * 20) + ")"; });
+
+    legend2.append("rect")
+        .attr("width", 12)
+        .attr("height", 12)
+        .attr("fill", function(d) { return colorIncome(d.key); })
+        .attr("stroke", "none");
+
+    legend2.append("text")
+        .attr("x", 18)
+        .attr("y", 10)
+        .attr("font-size", "11px")
+        .text(function(d) { return d.key; });
+
+
+    // --- ANNOTATION FOR SCENE 1 ---
+    var annotations1 = [
+        {
+            note: {
+                label: "Europe & Central Asia leads global growth, reaching over 17% in 2021.",
+                title: "Rapid Growth"
+            },
+            x: x1(2020),
+            y: y1(17.6),
+            dx: -60,
+            dy: 10
+        }
+    ];
+
+    var makeAnnotations1 = d3.annotation()
+        .annotations(annotations1);
+
+    g1.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations1);
+}
 
     // ==========================================
     // SCENE 2: TOP CO2 EMITTERS PER CAPITA
