@@ -361,15 +361,98 @@
             .call(makeAnnotations1);
     }
 
-    // ==========================================
-    // SCENE 2: TOP CO2 EMITTERS PER CAPITA
-    // ==========================================
-    function renderScene2() {
-        d3.select("#scene-title").text("Scene 2: Top Countries by CO2 Emissions Per Capita (2021)");
-        d3.select("#scene-description").text(
-            "Per-capita emissions remain heavily skewed toward small population island nations and major oil/energy producing states."
-        );
-    }
+// ==========================================
+// SCENE 2: TOP CO2 EMITTERS PER CAPITA
+// ==========================================
+function renderScene2() {
+    d3.select("#scene-title").text("Scene 2: Top Countries by CO2 Emissions Per Capita (2021)");
+    d3.select("#scene-description").text(
+        "Per-capita carbon emissions remain heavily skewed toward small population island nations and major oil/energy producing states, rather than the largest total economies."
+    );
+
+    // Sort bars descending
+    data2_bars.sort(function(a, b) { return b.value - a.value; });
+
+    var y2 = d3.scaleBand()
+        .domain(data2_bars.map(function(d) { return d.country; }))
+        .range([0, height])
+        .padding(0.2);
+
+    var x2 = d3.scaleLinear()
+        .domain([0, d3.max(data2_bars, function(d) { return d.value; })])
+        .range([0, width - 40]);
+
+    var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var g = svg.append("g")
+        .attr("transform", "translate(120, 10)"); // Translate left for long country labels
+
+    var adjWidth = width - 120;
+
+    // Recalculate x scale range with adjusted width
+    x2.range([0, adjWidth - 20]);
+
+    // Draw Bars
+    g.selectAll(".bar")
+        .data(data2_bars)
+        .enter()
+        .append("rect")
+            .attr("class", "bar-rect")
+            .attr("y", function(d) { return y2(d.country); })
+            .attr("height", y2.bandwidth())
+            .attr("x", 0)
+            .attr("width", function(d) { return x2(d.value); })
+            .attr("fill", function(d) { return colorRegion(d.region); })
+            .attr("stroke", "black")
+            .attr("stroke-width", "0.5px");
+
+    // Add Value Labels on Bars
+    g.selectAll(".val-label")
+        .data(data2_bars)
+        .enter()
+        .append("text")
+            .attr("y", function(d) { return y2(d.country) + y2.bandwidth() / 2 + 4; })
+            .attr("x", function(d) { return x2(d.value) + 5; })
+            .attr("font-size", "10px")
+            .text(function(d) { return d.value.toFixed(1); });
+
+    // Axes
+    g.append("g")
+        .call(d3.axisLeft(y2));
+
+    g.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x2));
+
+    // Axis Label
+    g.append("text")
+        .attr("x", adjWidth / 2)
+        .attr("y", height + 38)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "11px")
+        .text("Metric Tons CO2e Per Capita (2021)");
+
+    // --- ANNOTATION FOR SCENE 2 ---
+    var annotations2 = [
+        {
+            note: {
+                label: "Small population & energy-producing states lead global per-capita emissions.",
+                title: "Top Emitters"
+            },
+            x: x2(74.7), // Palau bar length
+            y: y2("Palau") + y2.bandwidth() / 2,
+            dx: -80,
+            dy: 40
+        }
+    ];
+
+    var makeAnnotations2 = d3.annotation()
+        .annotations(annotations2);
+
+    g.append("g")
+        .attr("class", "annotation-group")
+        .call(makeAnnotations2);
+}
 
     // ==========================================
     // SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
