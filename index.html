@@ -357,6 +357,21 @@
         g1.append("g")
             .attr("class", "annotation-group")
             .call(makeAnnotations1);
+
+        var annotations1B = [
+            {
+                note: {
+                    label: "High-income economies drive over 14% adoption, while low-income nations lag near 0%.",
+                    title: "Income Gap"
+                },
+                x: x2(2021),
+                y: y2(14.0),
+                dx: -80,
+                dy: 30
+            }
+        ];
+        var makeAnnotations1B = d3.annotation().annotations(annotations1B);
+        g2.append("g").attr("class", "annotation-group").call(makeAnnotations1B);
     }
 
 // ==========================================
