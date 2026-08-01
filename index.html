@@ -521,26 +521,34 @@ function renderScene2() {
         .text(function(d) { return d; });
 
     // ANNOTATION FOR SCENE 2
-    var annotations2 = [
+    var qatar = data2_bars.find(function(d) {
+        return d.country === "Qatar";
+    });
+
+    var annotationPanelX = adjWidth + 15;
+
+    var annotations2 = qatar ? [
         {
             note: {
-                label: "High-income economies comprise 90% (18 of 20) of the highest per-capita emitters globally.",
-                title: "Income Concentration"
+                label: "High-income economies account for 18 of the 20 countries with the highest per-capita emissions.",
+                title: "Income Concentration",
+                wrap: 145,
+                padding: 8
             },
-            x: x2(47.3), // Points near Qatar bar
-            y: y2("Qatar") + y2.bandwidth() / 2,
-            dx: -60,
-            dy: 50
+            x: x2(qatar.value),
+            y: y2(qatar.country) + y2.bandwidth() / 2,
+            dx: annotationPanelX - x2(qatar.value),
+            dy: 35
         }
-    ];
+    ] : [];
 
     var makeAnnotations2 = d3.annotation()
+        .type(d3.annotationCalloutElbow)
         .annotations(annotations2);
 
     g.append("g")
         .attr("class", "annotation-group")
         .call(makeAnnotations2);
-}
 
 // ==========================================
 // SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
