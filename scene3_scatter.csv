@@ -1,0 +1,143 @@
+﻿Country Name,Year,gdp_per_energy,renewable_pct,Region,Income Group
+Albania,2021,19.91058782,0.465409507,Europe & Central Asia,Upper middle income
+Algeria,2021,9.987883593,0.900702658,Middle East & North Africa,Upper middle income
+Angola,2021,20.57423544,18.89688171,Sub-Saharan Africa,Lower middle income
+Argentina,2021,15.10196169,9.061921021,Latin America & Caribbean,Upper middle income
+Armenia,2021,12.52170977,2.103058764,Europe & Central Asia,Upper middle income
+Australia,2021,11.65046999,20.93736114,East Asia & Pacific,High income
+Austria,2021,16.89020363,19.79073153,Europe & Central Asia,High income
+Azerbaijan,2021,12.38515366,1.219564672,Europe & Central Asia,Upper middle income
+Bahrain,2021,5.152502227,0.037442044,Middle East & North Africa,High income
+Bangladesh,2021,24.92567052,0.778793284,South Asia,Lower middle income
+Belarus,2021,9.426289246,2.246902204,Europe & Central Asia,Upper middle income
+Belgium,2021,12.577623,22.20061504,Europe & Central Asia,High income
+Benin,2021,9.212178826,0.251332149,Sub-Saharan Africa,Lower middle income
+Bolivia,2021,14.78095086,8.505880191,Latin America & Caribbean,Lower middle income
+Bosnia and Herzegovina,2021,8.06556379,2.675873975,Europe & Central Asia,Upper middle income
+Botswana,2021,15.62997434,0.248679399,Sub-Saharan Africa,Upper middle income
+Brazil,2021,12.6368768,22.07691557,Latin America & Caribbean,Upper middle income
+Brunei Darussalam,2021,8.730568595,0.019652571,East Asia & Pacific,High income
+Bulgaria,2021,10.60637149,11.53969055,Europe & Central Asia,High income
+Burkina Faso,2021,8.01333501,6.364285714,Sub-Saharan Africa,Low income
+Cambodia,2021,12.52516095,4.973465191,East Asia & Pacific,Lower middle income
+Cameroon,2021,12.68126417,0,Sub-Saharan Africa,Lower middle income
+Canada,2021,7.574239297,7.923638673,North America,High income
+Chad,2021,11.98294755,4.610047847,Sub-Saharan Africa,Low income
+Chile,2021,14.30896183,26.10146788,Latin America & Caribbean,High income
+China,2021,7.943936681,12.85652382,East Asia & Pacific,Upper middle income
+Colombia,2021,19.74305213,0.984188736,Latin America & Caribbean,Upper middle income
+"Congo, Dem. Rep.",2021,3.559813542,0,Sub-Saharan Africa,Low income
+"Congo, Rep.",2021,10.76489547,2.618235294,Sub-Saharan Africa,Lower middle income
+Costa Rica,2021,23.93444728,26.46894873,Latin America & Caribbean,High income
+Cote d'Ivoire,2021,12.70614657,0.204169911,Sub-Saharan Africa,Lower middle income
+Croatia,2021,16.69167492,22.35963182,Europe & Central Asia,High income
+Curacao,2021,7.131814057,18.26241135,Latin America & Caribbean,High income
+Cyprus,2021,20.01124701,15.1349873,Europe & Central Asia,High income
+Czechia,2021,11.78311107,9.76659413,Europe & Central Asia,High income
+Denmark,2021,25.29465843,78.91046899,Europe & Central Asia,High income
+Dominican Republic,2021,23.09451715,9.057645945,Latin America & Caribbean,Upper middle income
+Ecuador,2021,15.24108882,1.557428447,Latin America & Caribbean,Upper middle income
+"Egypt, Arab Rep.",2021,18.1611304,5.132486774,Middle East & North Africa,Lower middle income
+El Salvador,2021,14.96890473,66.85957447,Latin America & Caribbean,Upper middle income
+Equatorial Guinea,2021,12.98622965,0,Sub-Saharan Africa,Upper middle income
+Estonia,2021,12.91148765,39.63811771,Europe & Central Asia,High income
+Eswatini,2021,10.35607896,27.4765343,Sub-Saharan Africa,Lower middle income
+Ethiopia,2021,6.951685614,6.042509206,Sub-Saharan Africa,
+Finland,2021,9.469966645,31.03406727,Europe & Central Asia,High income
+France,2021,15.13540293,11.29536337,Europe & Central Asia,High income
+Gabon,2021,8.791515108,0,Sub-Saharan Africa,Upper middle income
+Georgia,2021,13.26513309,0.844760775,Europe & Central Asia,Upper middle income
+Germany,2021,18.0358275,35.6180088,Europe & Central Asia,High income
+Ghana,2021,17.28844359,0.768976149,Sub-Saharan Africa,Lower middle income
+Greece,2021,17.42781972,29.66937768,Europe & Central Asia,High income
+Guatemala,2021,12.79399357,17.62779893,Latin America & Caribbean,Upper middle income
+Haiti,2021,7.910750287,7.201604814,Latin America & Caribbean,Lower middle income
+Honduras,2021,10.88306262,30.76303957,Latin America & Caribbean,Lower middle income
+"Hong Kong SAR, China",2021,39.45713525,0.831898055,East Asia & Pacific,High income
+Hungary,2021,13.64125018,18.55758583,Europe & Central Asia,High income
+Iceland,2021,3.904408608,29.64290813,Europe & Central Asia,High income
+India,2021,11.89398429,9.20447543,South Asia,Lower middle income
+Indonesia,2021,14.13943638,8.652376841,East Asia & Pacific,Upper middle income
+"Iran, Islamic Rep.",2021,4.73177575,0.791484388,Middle East & North Africa,Upper middle income
+Iraq,2021,9.978543148,0.995172018,Middle East & North Africa,Upper middle income
+Ireland,2021,43.4688801,33.9226302,Europe & Central Asia,High income
+Israel,2021,18.97682049,7.630562632,Middle East & North Africa,High income
+Italy,2021,19.68537377,24.54911803,Europe & Central Asia,High income
+Jamaica,2021,11.88136626,9.562572288,Latin America & Caribbean,Upper middle income
+Japan,2021,13.87822203,12.64187144,East Asia & Pacific,High income
+Jordan,2021,12.37536902,24.83396509,Middle East & North Africa,Lower middle income
+Kazakhstan,2021,9.305685458,2.996159127,Europe & Central Asia,Upper middle income
+Kenya,2021,9.89081821,48.38760504,Sub-Saharan Africa,Lower middle income
+"Korea, Rep.",2021,9.380075877,5.512982753,East Asia & Pacific,High income
+Kuwait,2021,5.907833667,0.265012812,Middle East & North Africa,High income
+Kyrgyz Republic,2021,9.627658578,0.000924825,Europe & Central Asia,Lower middle income
+Lao PDR,2021,10.71917012,0,East Asia & Pacific,Lower middle income
+Latvia,2021,15.53850789,17.29096818,Europe & Central Asia,High income
+Lebanon,2021,11.74545315,0,Middle East & North Africa,Lower middle income
+Libya,2021,6.01222009,0.02239471,Middle East & North Africa,Upper middle income
+Lithuania,2021,16.53505389,44.09019299,Europe & Central Asia,High income
+Luxembourg,2021,24.28881627,39.99502262,Europe & Central Asia,High income
+Madagascar,2021,5.155408076,3.564715253,Sub-Saharan Africa,Low income
+Malaysia,2021,10.72095249,0,East Asia & Pacific,Upper middle income
+Malta,2021,41.7094631,11.88979223,Middle East & North Africa,High income
+Mauritius,2021,21.45614449,18.14004011,Sub-Saharan Africa,Upper middle income
+Mexico,2021,14.65931141,13.37774251,Latin America & Caribbean,Upper middle income
+Moldova,2021,9.73118126,1.771334135,Europe & Central Asia,Upper middle income
+Mongolia,2021,7.607121742,9.898964079,East Asia & Pacific,Upper middle income
+Montenegro,2021,13.68963869,8.546080508,Europe & Central Asia,Upper middle income
+Morocco,2021,14.20923458,16.47148798,Middle East & North Africa,Lower middle income
+Mozambique,2021,4.126819288,0.721441823,Sub-Saharan Africa,Low income
+Myanmar,2021,13.21152746,11.32617188,East Asia & Pacific,Lower middle income
+Namibia,2021,14.27005775,25.58123249,Sub-Saharan Africa,Lower middle income
+Nepal,2021,8.513033525,0,South Asia,Lower middle income
+Netherlands,2021,16.89923408,33.05516903,Europe & Central Asia,High income
+New Zealand,2021,12.34725353,27.11663043,East Asia & Pacific,High income
+Nicaragua,2021,11.8115185,55.29147876,Latin America & Caribbean,Lower middle income
+Niger,2021,10.56436861,7.825127334,Sub-Saharan Africa,Low income
+Nigeria,2021,22.68762924,0,Sub-Saharan Africa,Lower middle income
+North Macedonia,2021,15.21851471,4.733682878,Europe & Central Asia,Upper middle income
+Norway,2021,16.79301952,7.686547789,Europe & Central Asia,High income
+Oman,2021,6.500469735,1.939923605,Middle East & North Africa,High income
+Pakistan,2021,11.53964867,7.808224493,Middle East & North Africa,Lower middle income
+Panama,2021,29.93538773,10.37356464,Latin America & Caribbean,High income
+Paraguay,2021,14.08157081,0.666143855,Latin America & Caribbean,Upper middle income
+Peru,2021,19.7094776,5.778329619,Latin America & Caribbean,Upper middle income
+Philippines,2021,16.67991022,13.98073154,East Asia & Pacific,Lower middle income
+Poland,2021,14.06095497,15.73423852,Europe & Central Asia,High income
+Portugal,2021,19.89286935,38.51491791,Europe & Central Asia,High income
+Qatar,2021,6.830967985,0.276427645,Middle East & North Africa,High income
+Romania,2021,21.00288033,15.01884984,Europe & Central Asia,High income
+Russian Federation,2021,6.881657685,0.490596128,Europe & Central Asia,High income
+Rwanda,2021,7.536785874,5.16498994,Sub-Saharan Africa,Low income
+Saudi Arabia,2021,8.39564598,0.065298165,Middle East & North Africa,High income
+Senegal,2021,14.18781245,13.29153605,Sub-Saharan Africa,Lower middle income
+Serbia,2021,9.938002367,3.639178763,Europe & Central Asia,Upper middle income
+Singapore,2021,22.22763518,4.022159928,East Asia & Pacific,High income
+Slovak Republic,2021,11.59929329,8.395522388,Europe & Central Asia,High income
+Slovenia,2021,14.60327341,4.637503149,Europe & Central Asia,High income
+South Africa,2021,6.439709529,3.670596839,Sub-Saharan Africa,Upper middle income
+Spain,2021,18.26719,35.04059246,Europe & Central Asia,High income
+Sri Lanka,2021,27.15726712,7.771261334,South Asia,Lower middle income
+Sudan,2021,7.62378193,0,Sub-Saharan Africa,Low income
+Suriname,2021,10.86448459,0,Latin America & Caribbean,Upper middle income
+Sweden,2021,13.7607415,24.36116835,Europe & Central Asia,High income
+Switzerland,2021,30.91886372,7.627374589,Europe & Central Asia,High income
+Syrian Arab Republic,2021,10.96125707,0.37104852,Middle East & North Africa,Low income
+Tajikistan,2021,10.83808592,3.339833004,Europe & Central Asia,Lower middle income
+Tanzania,2021,8.379265785,3.509606987,Sub-Saharan Africa,Lower middle income
+Thailand,2021,10.95350432,17.29970835,East Asia & Pacific,Upper middle income
+Togo,2021,6.245932614,11.7008,Sub-Saharan Africa,Low income
+Trinidad and Tobago,2021,2.718703148,0.067595292,Latin America & Caribbean,High income
+Tunisia,2021,12.9026962,2.692096848,Middle East & North Africa,Lower middle income
+Turkiye,2021,16.94557513,18.71080266,Europe & Central Asia,Upper middle income
+Turkmenistan,2021,3.216539756,0,Europe & Central Asia,Upper middle income
+Uganda,2021,5.553930177,2.063115997,Sub-Saharan Africa,Low income
+Ukraine,2021,8.039298449,5.470857555,Europe & Central Asia,Upper middle income
+United Arab Emirates,2021,8.067812262,4.201345839,Middle East & North Africa,High income
+United Kingdom,2021,21.45509874,37.83117384,Europe & Central Asia,High income
+United States,2021,11.06255617,14.00779349,North America,High income
+Uruguay,2021,17.90995177,51.39349797,Latin America & Caribbean,High income
+Uzbekistan,2021,6.311587256,0.109580595,Europe & Central Asia,Lower middle income
+Viet Nam,2021,12.52224895,10.17220628,East Asia & Pacific,Lower middle income
+Zambia,2021,4.556115955,1.342339801,Sub-Saharan Africa,Lower middle income
+Zimbabwe,2021,11.91860507,24.21860795,Sub-Saharan Africa,Lower middle income
