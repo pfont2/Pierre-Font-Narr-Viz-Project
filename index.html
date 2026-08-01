@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>The Global Energy & Climate Pivot</title>
+
+    <!-- D3 Library (v5 to match your experience) -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <!-- d3-annotation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        #container {
+            width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .nav-buttons {
+            margin: 20px 0;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 5px;
+            background: #e0e0e0;
+            border: 1px solid #999;
+            border-radius: 4px;
+        }
+        button.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+            font-weight: bold;
+        }
+        #chart-container {
+            width: 860px;
+            height: 520px;
+            position: relative;
+        }
+        /* Style for SVG Elements matching your preferred style */
+        rect { fill: lightblue; stroke: black; }
+        circle { stroke: black; opacity: 0.8; }
+        path.line-path { fill: none; stroke-width: 2.5px; }
+
+        /* Simple Tooltip Styling for Scene 3 */
+        .tooltip {
+            position: absolute;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+        }
+    </style>
+</head>
+
+<body onload="init()">
+
+<div id="container">
+    <h1 id="scene-title">The Global Energy & Climate Pivot</h1>
+    <p id="scene-description">Loading project data...</p>
+
+    <!-- Triggers (Navigation Buttons) -->
+    <div class="nav-buttons">
+        <button id="btn-1" class="active" onclick="goToScene(1)">1. Renewable Trends</button>
+        <button id="btn-2" onclick="goToScene(2)">2. CO2 Emissions Leaders</button>
+        <button id="btn-3" onclick="goToScene(3)">3. Efficiency vs. Renewables</button>
+    </div>
+
+    <!-- Chart SVG Container -->
+    <div id="chart-container">
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+</div>
+
+<script>
+    // PARAMETERS (State Variables)
+    var currentScene = 1;
+    
+    // Data Storage Variables
+    var data1_region = [];
+    var data1_income = [];
+    var data2_bars = [];
+    var data3_scatter = [];
+
+    // Main SVG Canvas & Dimensions
+    var margin = {top: 30, right: 150, bottom: 50, left: 60};
+    var width = 860 - margin.left - margin.right;
+    var height = 500 - margin.top - margin.bottom;
+
+    var svg = d3.select("#chart-container")
+        .append("svg")
+            .attr("width", 860)
+            .attr("height", 500)
+        .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Tooltip Selection
+    var tooltip = d3.select("#tooltip");
+
+    // INITIALIZATION FUNCTION: Loads all 4 CSV files
+    async function init() {
+        data1_region = await d3.csv("scene1_lines1.csv");
+        data1_income = await d3.csv("scene1_lines2.csv");
+        data2_bars = await d3.csv("scene2_bars.csv");
+        data3_scatter = await d3.csv("scene3_scatter.csv");
+
+        // Render default starting scene (Scene 1)
+        renderScene();
+    }
+
+    // TRIGGER FUNCTION: Updates currentScene parameter and updates button styles
+    function goToScene(sceneNumber) {
+        currentScene = sceneNumber;
+
+        // Reset button active classes
+        d3.selectAll(".nav-buttons button").classed("active", false);
+        d3.select("#btn-" + sceneNumber).classed("active", true);
+
+        renderScene();
+    }
+
+    // MAIN CONTROLLER FUNCTION: Draws the active scene
+    function renderScene() {
+        // Clear SVG contents before re-drawing
+        svg.selectAll("*").remove();
+
+        if (currentScene === 1) {
+            renderScene1();
+        } else if (currentScene === 2) {
+            renderScene2();
+        } else if (currentScene === 3) {
+            renderScene3();
+        }
+    }
+
+    // ==========================================
+    // SCENE 1: RENEWABLE ADOPTION TRENDS
+    // ==========================================
+    function renderScene1() {
+        d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990–2021)");
+        d3.select("#scene-description").text(
+            "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe and High-Income economy groups."
+        );
+
+        // We will build two stacked line charts here in the next step!
+    }
+
+    // ==========================================
+    // SCENE 2: TOP CO2 EMITTERS PER CAPITA
+    // ==========================================
+    function renderScene2() {
+        d3.select("#scene-title").text("Scene 2: Top Countries by CO2 Emissions Per Capita (2021)");
+        d3.select("#scene-description").text(
+            "Per-capita emissions remain heavily skewed toward small population island nations and major oil/energy producing states."
+        );
+
+        // Horizontal Bar Chart logic will go here
+    }
+
+    // ==========================================
+    // SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
+    // ==========================================
+    function renderScene3() {
+        d3.select("#scene-title").text("Scene 3: Energy Efficiency vs. Renewable Output (2021)");
+        d3.select("#scene-description").text(
+            "High renewable adoption spans across nations regardless of economic efficiency. Hover over circles to inspect individual country stats."
+        );
+
+        // Scatterplot & Hover Tooltip logic will go here
+    }
+</script>
+
+</body>
+</html>
