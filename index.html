@@ -107,7 +107,7 @@
     var data3_scatter = [];
 
     // Main SVG Canvas & Dimensions
-    var margin = {top: 30, right: 150, bottom: 50, left: 60};
+    var margin = {top: 30, right: 180, bottom: 50, left: 60};
     var width = 860 - margin.left - margin.right;
     var height = 540 - margin.top - margin.bottom;
 
@@ -120,12 +120,43 @@
 
     var tooltip = d3.select("#tooltip");
 
-    // INITIALIZATION FUNCTION: Loads all 4 CSV files
+    // INITIALIZATION FUNCTION: Loads and explicitly parses numbers
     async function init() {
-        data1_region = await d3.csv("scene1_lines1.csv");
-        data1_income = await d3.csv("scene1_lines2.csv");
-        data2_bars = await d3.csv("scene2_bars.csv");
-        data3_scatter = await d3.csv("scene3_scatter.csv");
+        data1_region = await d3.csv("scene1_lines1.csv", function(d) {
+            return {
+                country: d["Country Name"],
+                year: +d["Year"],
+                value: +d["Value"]
+            };
+        });
+
+        data1_income = await d3.csv("scene1_lines2.csv", function(d) {
+            return {
+                country: d["Country Name"],
+                year: +d["Year"],
+                value: +d["Value"]
+            };
+        });
+
+        data2_bars = await d3.csv("scene2_bars.csv", function(d) {
+            return {
+                country: d["Country Name"],
+                value: +d["Value"],
+                region: d["Region"],
+                income: d["Income Group"]
+            };
+        });
+
+        data3_scatter = await d3.csv("scene3_scatter.csv", function(d) {
+            return {
+                country: d["Country Name"],
+                year: +d["Year"],
+                renewable_pct: Math.max(0, +d["renewable_pct"]),
+                gdp_per_energy: +d["gdp_per_energy"],
+                region: d["Region"],
+                income: d["Income Group"]
+            };
+        });
 
         renderScene();
     }
@@ -169,24 +200,24 @@
             .attr("transform", "translate(0, 10)");
 
         var x1 = d3.scaleLinear()
-            .domain(d3.extent(data1_region, function(d) { return +d.Year; }))
+            .domain(d3.extent(data1_region, function(d) { return d.year; }))
             .range([0, width]);
 
         var y1 = d3.scaleLinear()
-            .domain([0, d3.max(data1_region, function(d) { return +d.Value; })])
+            .domain([0, d3.max(data1_region, function(d) { return d.value; })])
             .range([subHeight, 0]);
 
         var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
 
         var nestedRegion = d3.nest()
-            .key(function(d) { return d["Country Name"]; })
+            .key(function(d) { return d.country; })
             .entries(data1_region);
 
         var lineGenerator1 = d3.line()
-            .x(function(d) { return x1(+d.Year); })
-            .y(function(d) { return y1(+d.Value); });
+            .x(function(d) { return x1(d.year); })
+            .y(function(d) { return y1(d.value); });
 
-        // Draw lines with class "line-path"
+        // Draw lines
         g1.selectAll(".line-region")
             .data(nestedRegion)
             .enter()
@@ -235,25 +266,25 @@
             .attr("transform", "translate(0, 240)");
 
         var x2 = d3.scaleLinear()
-            .domain(d3.extent(data1_income, function(d) { return +d.Year; }))
+            .domain(d3.extent(data1_income, function(d) { return d.year; }))
             .range([0, width]);
 
         var y2 = d3.scaleLinear()
-            .domain([0, d3.max(data1_income, function(d) { return +d.Value; })])
+            .domain([0, d3.max(data1_income, function(d) { return d.value; })])
             .range([subHeight, 0]);
 
         var colorIncome = d3.scaleOrdinal()
             .range(["#d95f02", "#7570b3", "#e7298a", "#66a61e"]);
 
         var nestedIncome = d3.nest()
-            .key(function(d) { return d["Country Name"]; })
+            .key(function(d) { return d.country; })
             .entries(data1_income);
 
         var lineGenerator2 = d3.line()
-            .x(function(d) { return x2(+d.Year); })
-            .y(function(d) { return y2(+d.Value); });
+            .x(function(d) { return x2(d.year); })
+            .y(function(d) { return y2(d.value); });
 
-        // Draw lines with class "line-path"
+        // Draw lines
         g2.selectAll(".line-income")
             .data(nestedIncome)
             .enter()
@@ -301,13 +332,13 @@
         var annotations1 = [
             {
                 note: {
-                    label: "Europe & Central Asia leads regional adoption (~17% in 2021).",
+                    label: "Europe & Central Asia leads adoption (~17% in 2021).",
                     title: "Leader"
                 },
                 x: x1(2021),
                 y: y1(17.3),
-                dx: -40,
-                dy: 20
+                dx: -60,
+                dy: -10
             }
         ];
 
