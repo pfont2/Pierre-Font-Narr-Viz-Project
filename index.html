@@ -58,6 +58,7 @@
             stroke: #333;
             stroke-width: 0.5px;
         }
+        
         .annotation-group .annotation-note-label {
             font-size: 10px;
             line-height: 1.25;
@@ -70,13 +71,21 @@
 
         .annotation-group .annotation-note-bg {
             fill: white;
-            fill-opacity: 0.92;
+            fill-opacity: 0.94;
         }
 
-        .annotation-group .connector,
-        .annotation-group .annotation-subject {
-        stroke: #444;
+        .annotation-group .connector {
+            stroke: #444;
+            stroke-width: 1.25px;
+            stroke-dasharray: 3, 3;
         }
+
+        .annotation-group .annotation-subject {
+            stroke: #444;
+            stroke-width: 1.5px;
+            fill: none;
+        }
+        
         circle { 
             stroke: black; 
             opacity: 0.8; 
@@ -214,6 +223,21 @@
         }
     }
 
+    function addPointAnnotation(chartGroup, annotationData) {
+        var makeAnnotation = d3.annotation()
+            .type(d3.annotationCalloutCircle)
+            .subject({
+                radius: 7,
+                radiusPadding: 3
+            })
+            .notePadding(8)
+            .annotations(annotationData);
+
+        chartGroup.append("g")
+            .attr("class", "annotation-group")
+            .call(makeAnnotation);
+    }
+
 // ==========================================
 // SCENE 1: RENEWABLE ADOPTION TRENDS
 // ==========================================
@@ -296,17 +320,18 @@ function renderScene1() {
     var annotations1A = [
         {
             note: {
-                label: "Europe & Central Asia leads regional adoption, reaching about 17.3% in 2021.",
                 title: "Regional Leader",
-                wrap: 145,
-                padding: 8
+                label: "Europe & Central Asia reached approximately 17.3% renewable electricity output in 2021.",
+                wrap: 145
             },
             x: x1(2021),
             y: y1(17.3),
-            dx: -310,
-            dy: 95
+            dx: -165,
+            dy: 55
         }
     ];
+
+    addPointAnnotation(g1, annotations1A);
 
     var makeAnnotations1A = d3.annotation()
         .type(d3.annotationCalloutElbow)
@@ -389,17 +414,18 @@ function renderScene1() {
     var annotations1B = [
         {
             note: {
-                label: "High-income economies exceed 14%, while low-income economies remain near zero.",
                 title: "Income Gap",
-                wrap: 140,
-                padding: 8
+                label: "High-income economies exceed 14%, while low-income economies remain near zero.",
+                wrap: 140
             },
             x: x2(2021),
             y: y2(14.0),
-            dx: 18,
-            dy: -28
+            dx: -165,
+            dy: -25
         }
     ];
+
+    addPointAnnotation(g2, annotations1B);
 
     var makeAnnotations1B = d3.annotation()
         .annotations(annotations1B);
@@ -526,22 +552,21 @@ function renderScene2() {
         return d.country === "Qatar";
     });
 
-    var annotationPanelX = adjWidth + 15;
-
     var annotations2 = qatar ? [
         {
             note: {
-                label: "High-income economies account for 18 of the 20 countries with the highest per-capita emissions.",
                 title: "Income Concentration",
-                wrap: 145,
-                padding: 8
+                label: "Qatar is one example of a broader pattern: 18 of the top 20 emitters are high-income economies.",
+                wrap: 145
             },
             x: x2(qatar.value),
             y: y2(qatar.country) + y2.bandwidth() / 2,
-            dx: annotationPanelX - x2(qatar.value),
-            dy: 35
+            dx: 45,
+            dy: 55
         }
     ] : [];
+
+    addPointAnnotation(g, annotations2);
 
     var makeAnnotations2 = d3.annotation()
         .type(d3.annotationCalloutElbow)
@@ -572,6 +597,21 @@ function renderScene3() {
 
     var g = svg.append("g")
         .attr("transform", "translate(10, 10)");
+
+    var medianEfficiency = d3.median(
+        data3_scatter,
+        function(d) {
+            return d.gdp_per_energy;
+        }
+    );
+
+    var highlightedCountry = data3_scatter
+        .filter(function(d) {
+            return d.gdp_per_energy >= medianEfficiency;
+        })
+        .sort(function(a, b) {
+            return b.renewable_pct - a.renewable_pct;
+        })[0];
 
     // Draw Scatterplot Circles
     g.selectAll("circle")
@@ -653,6 +693,24 @@ function renderScene3() {
         .attr("y", 9)
         .attr("font-size", "10px")
         .text(function(d) { return d; });
+
+    var annotations3 = highlightedCountry ? [
+        {
+            note: {
+                title: "Different Pathways",
+                label:
+                    highlightedCountry.country +
+                    " combines above-median energy efficiency with high renewable output, while the wider distribution shows no single transition pattern.",
+                wrap: 165
+            },
+            x: x3(highlightedCountry.gdp_per_energy),
+            y: y3(highlightedCountry.renewable_pct),
+            dx: -175,
+            dy: 65
+        }
+    ] : [];
+
+    addPointAnnotation(g, annotations3);
 }
 </script>
 
