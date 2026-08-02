@@ -71,11 +71,12 @@
         }
         .annotation-group .connector {
             stroke: #444;
+            stroke-width: 1.25px;
             stroke-dasharray: 3, 3;
         }
+
         .annotation-group .annotation-subject {
             stroke: #444;
-            fill: none;
         }
         circle {
             stroke: black;
@@ -300,19 +301,15 @@
                     wrap: 145,
                     padding: 8
                 },
-                subject: {
-                    radius: 7,
-                    radiusPadding: 3
-                },
                 x: x1(2021),
                 y: y1(17.3),
-                dx: -165,
-                dy: 55
+                dx: -180,
+                dy: -55
             }
         ];
 
         var makeAnnotations1A = d3.annotation()
-            .type(d3.annotationCalloutCircle)
+            .type(d3.annotationCalloutElbow)
             .annotations(annotations1A);
 
         g1.append("g")
@@ -394,23 +391,19 @@
             {
                 note: {
                     label: "High-income economies exceed 14%, while low-income economies remain near zero.",
-                    title: "Income Gap",
-                    wrap: 140,
-                    padding: 8
-                },
-                subject: {
-                    radius: 7,
-                    radiusPadding: 3
+                title: "Income Gap",
+                wrap: 140,
+                padding: 8
                 },
                 x: x2(2021),
                 y: y2(14.0),
-                dx: -165,
-                dy: -25
+                dx: -180,
+                dy: -55
             }
         ];
 
         var makeAnnotations1B = d3.annotation()
-            .type(d3.annotationCalloutCircle)
+            .type(d3.annotationCalloutElbow)
             .annotations(annotations1B);
 
         g2.append("g")
@@ -534,6 +527,8 @@
             return d.country === "Qatar";
         });
 
+        var annotationPanelX = adjWidth + 15;
+
         var annotations2 = qatar ? [
             {
                 note: {
@@ -542,19 +537,15 @@
                     wrap: 145,
                     padding: 8
                 },
-                subject: {
-                    radius: 7,
-                    radiusPadding: 3
-                },
                 x: x2(qatar.value),
-                y: y2(qatar.country) + y2.bandwidth() / 2,
-                dx: 55,
-                dy: 55
+            y: y2(qatar.country) + y2.bandwidth() / 2,
+            dx: annotationPanelX - x2(qatar.value),
+            dy: 35
             }
         ] : [];
 
         var makeAnnotations2 = d3.annotation()
-            .type(d3.annotationCalloutCircle)
+            .type(d3.annotationCalloutElbow)
             .annotations(annotations2);
 
         g.append("g")
@@ -675,7 +666,7 @@
         // ANNOTATION FOR SCENE 3
         var medianEfficiency = d3.median(data3_scatter, function(d) {
             return d.gdp_per_energy;
-        });
+            });
 
         var highlightedCountry = data3_scatter
             .filter(function(d) {
@@ -689,24 +680,20 @@
             {
                 note: {
                     label: highlightedCountry.country +
-                        " combines above-median energy efficiency with high renewable output.",
+                    " shows that high renewable output can occur alongside relatively high energy efficiency.",
                     title: "Different Pathways",
-                    wrap: 165,
+                    wrap: 150,
                     padding: 8
                 },
-                subject: {
-                    radius: 7,
-                    radiusPadding: 3
-                },
-                x: x3(highlightedCountry.gdp_per_energy),
-                y: y3(highlightedCountry.renewable_pct),
-                dx: -175,
-                dy: 65
+            x: x3(highlightedCountry.gdp_per_energy),
+            y: y3(highlightedCountry.renewable_pct),
+            dx: 80,
+            dy: 95
             }
         ] : [];
 
         var makeAnnotations3 = d3.annotation()
-            .type(d3.annotationCalloutCircle)
+            .type(d3.annotationCalloutElbow)
             .annotations(annotations3);
 
         g.append("g")
