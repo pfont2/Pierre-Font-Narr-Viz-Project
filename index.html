@@ -303,14 +303,13 @@ function renderScene1() {
             },
             x: x1(2021),
             y: y1(17.3),
-
-            // Place the annotation in the right margin and below the legend.
-            dx: 18,
-            dy: 135
+            dx: -310,
+            dy: 95
         }
     ];
 
     var makeAnnotations1A = d3.annotation()
+        .type(d3.annotationCalloutElbow)
         .annotations(annotations1A);
 
     g1.append("g")
