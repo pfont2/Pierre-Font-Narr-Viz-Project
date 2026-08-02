@@ -292,19 +292,21 @@ function renderScene1() {
         .attr("font-size", "10px")
         .text(function(d) { return d.key; });
 
-    // ANNOTATION 1A (Positioned in open white space above lines)
+    // ANNOTATION 1A
     var annotations1A = [
         {
             note: {
                 label: "Europe & Central Asia leads regional adoption, reaching about 17.3% in 2021.",
                 title: "Regional Leader",
-                wrap: 140,
+                wrap: 145,
                 padding: 8
             },
             x: x1(2021),
             y: y1(17.3),
+
+            // Place the annotation in the right margin and below the legend.
             dx: 18,
-            dy: -28
+            dy: 135
         }
     ];
 
