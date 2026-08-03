@@ -130,7 +130,7 @@
     </div>
 
     <!-- Trigger: income-group filter. Drives the highlightIncome parameter. -->
-    <div class="filter-row">
+    <div class="filter-row" id="income-row">
         <label for="income-select">Highlight an income group:</label>
         <select id="income-select" onchange="setHighlight(this.value)">
             <option value="All">All groups (no highlight)</option>
@@ -402,10 +402,15 @@
         tooltip.style("opacity", 0);
         d3.select("#income-select").property("value", highlightIncome);
 
+        // The income filter only applies to Scene 3. Scenes 1 and 2 already
+        // encode income group directly (as separate lines, and as bar colour),
+        // so the control is hidden there rather than shown doing nothing.
+        d3.select("#income-row").style("display", currentScene === 3 ? "block" : "none");
+
         if (currentScene === 1) {
-            renderScene1(highlightIncome);
+            renderScene1();
         } else if (currentScene === 2) {
-            renderScene2(highlightIncome);
+            renderScene2();
         } else if (currentScene === 3) {
             renderScene3(highlightIncome);
         }
@@ -414,12 +419,12 @@
     // ==========================================
     // SCENE 1: RENEWABLE ADOPTION TRENDS
     // ==========================================
-    function renderScene1(selectedIncome) {
+    function renderScene1() {
         d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990-2021)");
         d3.select("#scene-description").text(
             "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe & Central Asia geographically, and High-Income nations economically."
         );
-        d3.select("#hint").text("Hover anywhere along a line to read that year's value. Use the dropdown to highlight one income group in the lower chart.");
+        d3.select("#hint").text("Hover anywhere along either line chart to read that year's value.");
 
         var subHeight = 170;
 
@@ -565,17 +570,15 @@
                 .attr("class", "line-path")
                 .attr("d", function(d) { return lineGenerator2(d.values); })
                 .attr("stroke", function(d) { return colorIncome(d.key); })
-                .attr("stroke-opacity", function(d) { return fade(d.key, selectedIncome); })
                 .attr("cursor", "pointer")
                 .on("mouseover", function(d) {
-                    d3.select(this).attr("stroke-width", 5).attr("stroke-opacity", 1);
+                    d3.select(this).attr("stroke-width", 5);
                     lineTooltip(d, this, x2, y2);
                     tooltip.transition().duration(100).style("opacity", 0.95);
                 })
                 .on("mousemove", function(d) { lineTooltip(d, this, x2, y2); })
-                .on("mouseout", function(d) {
-                    d3.select(this).attr("stroke-width", 2.5)
-                        .attr("stroke-opacity", fade(d.key, selectedIncome));
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 2.5);
                     clearFocus(this);
                     tooltip.transition().duration(200).style("opacity", 0);
                 });
@@ -604,8 +607,6 @@
                     return "translate(" + (width + 15) + "," + (i * 18) + ")";
                 });
 
-        legend2.attr("opacity", function(d) { return fade(d.key, selectedIncome); });
-
         legend2.append("rect")
             .attr("class", "legend-box")
             .attr("width", 10)
@@ -618,45 +619,20 @@
             .attr("font-size", "10px")
             .text(function(d) { return d.key; });
 
-        // ANNOTATION 1B - this annotation CHANGES with the highlightIncome
-        // parameter. With no group selected it states the overall income gap;
-        // with a group selected it moves to that group's peak and describes it.
-        // Every income group peaks in 2014 or later and below the blank band,
-        // so dx and dy stay negative and the note box lands in the same slot.
-        var anchorX1B, anchorY1B, label1B, title1B;
-
-        var selectedSeries = null;
-        for (var si = 0; si < nestedIncome.length; si++) {
-            if (nestedIncome[si].key === selectedIncome) {
-                selectedSeries = nestedIncome[si];
-            }
-        }
-
-        if (selectedSeries) {
-            var pk = peakOf(selectedSeries);
-            anchorX1B = x2(pk.year);
-            anchorY1B = y2(pk.value);
-            title1B = "Selected Group";
-            label1B = selectedIncome + " peaks at " + pk.value.toFixed(1) +
-                      "% (" + pk.year + ").";
-        } else {
-            anchorX1B = x2(2021);
-            anchorY1B = y2(14.09);
-            title1B = "Income Gap";
-            label1B = "High-income economies exceed 14%; low-income economies stay near zero.";
-        }
+        // ANNOTATION 1B - same template and same note slot as 1A
+        var anchorY1B = y2(14.09);
 
         var annotations1B = [
             {
                 note: {
-                    label: label1B,
-                    title: title1B,
+                    label: "High-income economies exceed 14%; low-income economies stay near zero.",
+                    title: "Income Gap",
                     wrap: 175,
                     padding: 8
                 },
-                x: anchorX1B,
+                x: x2(2021),
                 y: anchorY1B,
-                dx: 410 - anchorX1B,
+                dx: 410 - x2(2021),
                 dy: noteBottomY - anchorY1B
             }
         ];
@@ -667,12 +643,12 @@
     // ==========================================
     // SCENE 2: TOP CO2 EMITTERS PER CAPITA
     // ==========================================
-    function renderScene2(selectedIncome) {
+    function renderScene2() {
         d3.select("#scene-title").text("Scene 2: Top Countries by CO2 Emissions Per Capita (2021)");
         d3.select("#scene-description").text(
             "Per-capita carbon emissions are heavily concentrated in wealthy economies: 18 out of the top 20 emitters are High-Income nations, alongside oil-rich and small island states."
         );
-        d3.select("#hint").text("Hover over any bar for its region and income group. Use the dropdown to highlight one income group.");
+        d3.select("#hint").text("Hover over any bar for its region and income group.");
 
         // Sort bars descending
         data2_bars.sort(function(a, b) { return b.value - a.value; });
@@ -711,10 +687,9 @@
                 .style("fill", function(d) {
                     return colorIncome(d.income) || "#999";
                 })
-                .attr("opacity", function(d) { return fade(d.income, selectedIncome); })
                 .attr("cursor", "pointer")
                 .on("mouseover", function(d) {
-                    d3.select(this).attr("stroke-width", 2).attr("opacity", 1);
+                    d3.select(this).attr("stroke-width", 2);
                     tooltip.html(
                         "<strong>" + d.country + "</strong><br/>" +
                         "Region: " + d.region + "<br/>" +
@@ -725,9 +700,8 @@
                     tooltip.transition().duration(100).style("opacity", 0.95);
                 })
                 .on("mousemove", moveTooltip)
-                .on("mouseout", function(d) {
-                    d3.select(this).attr("stroke-width", 0.5)
-                        .attr("opacity", fade(d.income, selectedIncome));
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 0.5);
                     tooltip.transition().duration(200).style("opacity", 0);
                 });
 
@@ -776,8 +750,6 @@
                 return "translate(300," + (barsHeight - 95 + i * 20) + ")";
             });
 
-        legend2.attr("opacity", function(d) { return fade(d, selectedIncome); });
-
         legend2.append("rect")
             .attr("width", 12)
             .attr("height", 12)
@@ -796,33 +768,10 @@
             return d.country === "Qatar";
         });
 
-        // The LABEL changes with the highlightIncome parameter; the anchor stays
-        // on Qatar so the note box remains in its verified empty slot.
-        var label2 = "Qatar illustrates a broader pattern: 18 of the top 20 emitters are high-income economies.";
-
-        if (selectedIncome !== "All") {
-            var groupCount = 0;
-            var groupTop = null;
-            for (var bi = 0; bi < data2_bars.length; bi++) {
-                if (data2_bars[bi].income === selectedIncome) {
-                    groupCount = groupCount + 1;
-                    if (!groupTop) { groupTop = data2_bars[bi]; }
-                }
-            }
-            if (groupCount === 0) {
-                label2 = "No " + selectedIncome.toLowerCase() +
-                         " country appears among the top 20 emitters at all.";
-            } else {
-                label2 = selectedIncome + " accounts for " + groupCount +
-                         " of the top 20, led by " + groupTop.country +
-                         " at " + groupTop.value.toFixed(1) + " t/person.";
-            }
-        }
-
         var annotations2 = qatar ? [
             {
                 note: {
-                    label: label2,
+                    label: "Qatar illustrates a broader pattern: 18 of the top 20 are high-income economies, and not one is low or lower-middle income.",
                     title: "Income Concentration",
                     wrap: 170,
                     padding: 8
@@ -1002,4 +951,3 @@
 
 </body>
 </html>
-
