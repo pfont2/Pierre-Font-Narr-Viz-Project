@@ -96,8 +96,7 @@
             stroke: #444;
         }
 
-        /* NOTE: no opacity here on purpose. A CSS rule would override the
-           opacity set in JavaScript, which would break the highlight dimming. */
+       
         circle {
             stroke: black;
         }
@@ -129,7 +128,7 @@
         <button id="btn-3" onclick="goToScene(3)">3. Efficiency vs. Renewables</button>
     </div>
 
-    <!-- Trigger: income-group filter. Drives the highlightIncome parameter. -->
+    <!-- Trigger: income-group filter. -->
     <div class="filter-row" id="income-row">
         <label for="income-select">Highlight an income group:</label>
         <select id="income-select" onchange="setHighlight(this.value)">
@@ -164,22 +163,14 @@
     var data3_scatter = [];
 
     // Main SVG Canvas & Dimensions
-    // The right margin is deliberately wide: it is the reserved "gutter" that
-    // holds the legends so they never sit on top of the plotted data.
     var svgWidth = 920;
     var svgHeight = 560;
     var margin = {top: 30, right: 220, bottom: 50, left: 60};
-    var width = svgWidth - margin.left - margin.right;   // 640
-    var height = svgHeight - margin.top - margin.bottom; // 480
-
-    // HEADROOM: every y-scale is padded above the maximum data value so that a
-    // blank band is guaranteed at the top of each chart for the annotation.
+    var width = svgWidth - margin.left - margin.right;
+    var height = svgHeight - margin.top - margin.bottom; 
     var headroom = 1.65;
 
-    // SHARED COLOR SCALES: the domains are listed explicitly so that a region
-    // (or income group) keeps the SAME color in every scene. Letting d3 assign
-    // colors in data order made Scene 1 and Scene 3 disagree.
-    // The two spellings of the Middle East region deliberately share one color.
+    // SHARED COLOR SCALES: the domains are listed explicitly so that a region (or income group) keeps the SAME color in every scene. 
     var regionColor = d3.scaleOrdinal()
         .domain([
             "East Asia & Pacific",
@@ -225,7 +216,7 @@
 
     var tooltip = d3.select("#tooltip");
 
-    // HELPER FUNCTION: Safely reads object properties ignoring hidden BOM characters
+    // HELPER FUNCTION: reads object properties ignoring hidden BOM characters
     function getVal(d, keyName) {
         var keys = Object.keys(d);
         for (var i = 0; i < keys.length; i++) {
@@ -256,8 +247,7 @@
             .call(maker);
     }
 
-    // HIGHLIGHT HELPER: opacity for a mark, given the highlightIncome parameter.
-    // "All" means nothing is dimmed; otherwise non-matching marks fade back.
+    // HIGHLIGHT HELPER: 
     function fade(group, selected) {
         if (selected === "All" || group === selected) {
             return 1;
@@ -266,8 +256,6 @@
     }
 
     // TOOLTIP HELPER: positions the tooltip relative to the chart container.
-    // (d3.event.offsetX is measured against the hovered SVG shape, not the
-    // container, which is why the tooltip used to appear in the wrong place.)
     function moveTooltip() {
         var container = d3.select("#chart-container").node();
         var point = d3.mouse(container);
@@ -284,8 +272,7 @@
         tooltip.style("left", left + "px").style("top", top + "px");
     }
 
-    // LINE TOOLTIP: reads the year under the cursor and reports THAT year's
-    // value, rather than always reporting the final year of the series.
+    // LINE TOOLTIP: reads the year under the cursor and reports THAT year's value.
     function lineTooltip(series, node, xScale, yScale) {
         var parent = node.parentNode;
         var m = d3.mouse(parent);
@@ -304,7 +291,7 @@
         }
         if (!point) { return; }
 
-        // Small marker so the reader can see which year is being read off.
+        // Small marker so you can see which year is being read off.
         d3.select(parent).selectAll(".focus-dot").remove();
         d3.select(parent).append("circle")
             .attr("class", "focus-dot")
@@ -327,8 +314,7 @@
         d3.select(node.parentNode).selectAll(".focus-dot").remove();
     }
 
-    // Returns the highest point of a series (used to anchor Scene 1B's
-    // annotation on whichever income group the user has selected).
+    // Returns the highest point of a series 
     function peakOf(series) {
         var best = series.values[0];
         for (var i = 1; i < series.values.length; i++) {
@@ -337,7 +323,7 @@
         return best;
     }
 
-    // INITIALIZATION FUNCTION: Loads CSV files safely
+    // INITIALIZATION FUNCTION: Loads CSV files
     async function init() {
         data1_region = await d3.csv("scene1_lines1.csv", function(d) {
             return {
@@ -402,9 +388,6 @@
         tooltip.style("opacity", 0);
         d3.select("#income-select").property("value", highlightIncome);
 
-        // The income filter only applies to Scene 3. Scenes 1 and 2 already
-        // encode income group directly (as separate lines, and as bar colour),
-        // so the control is hidden there rather than shown doing nothing.
         d3.select("#income-row").style("display", currentScene === 3 ? "block" : "none");
 
         if (currentScene === 1) {
@@ -416,9 +399,7 @@
         }
     }
 
-    // ==========================================
     // SCENE 1: RENEWABLE ADOPTION TRENDS
-    // ==========================================
     function renderScene1() {
         d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990-2021)");
         d3.select("#scene-description").text(
@@ -428,11 +409,6 @@
 
         var subHeight = 170;
 
-        // IMPORTANT: d3-annotation anchors the note box at the corner NEAREST the
-        // data point. Because dy is negative here (the note sits above the point),
-        // this value is the BOTTOM of the note and the box grows upward from it.
-        // 50 puts the box at roughly y 5-42: clear of the chart title above
-        // (which ends at y -5) and clear of the lines below (which start at y 67).
         var noteBottomY = 50;
 
         // --- CHART 1A: REGIONAL TRENDS (TOP) ---
@@ -495,7 +471,7 @@
             .attr("font-size", "13px")
             .text("Renewable Adoption (% of Total) by Region");
 
-        // Legend (drawn in the reserved right-hand gutter)
+        // Legend
         var legend1 = g1.selectAll(".legend-region")
             .data(nestedRegion)
             .enter()
@@ -516,8 +492,7 @@
             .attr("font-size", "10px")
             .text(function(d) { return shortName(d.key); });
 
-        // ANNOTATION 1A - anchored on the 2021 Europe & Central Asia point,
-        // with the note parked in the blank band above every line.
+        // ANNOTATION 1A - anchored on the 2021 Europe & Central Asia point.
         var euro2021 = 17.16;
         var anchorY1A = y1(euro2021);
 
@@ -598,7 +573,7 @@
             .attr("font-size", "13px")
             .text("Renewable Adoption (% of Total) by Income Group");
 
-        // Legend (same reserved gutter, same offsets as Chart 1A)
+        // Legend
         var legend2 = g2.selectAll(".legend-income")
             .data(nestedIncome)
             .enter()
@@ -640,9 +615,7 @@
         drawAnnotation(g2, annotations1B);
     }
 
-    // ==========================================
     // SCENE 2: TOP CO2 EMITTERS PER CAPITA
-    // ==========================================
     function renderScene2() {
         d3.select("#scene-title").text("Scene 2: Top Countries by CO2 Emissions Per Capita (2021)");
         d3.select("#scene-description").text(
@@ -666,8 +639,8 @@
         var g = svg.append("g")
             .attr("transform", "translate(140, 5)");
 
-        var adjWidth = width - 140;          // 500
-        var barAreaWidth = adjWidth - 60;    // 440, the extra 60 holds value labels
+        var adjWidth = width - 140;         
+        var barAreaWidth = adjWidth - 60;   
 
         var xBars = d3.scaleLinear()
             .domain([0, d3.max(data2_bars, function(d) { return d.value; })])
@@ -734,8 +707,6 @@
             .text("Metric Tons CO2e Per Capita (2021)");
 
         // Legend for Scene 2.
-        // Because the bars are sorted descending, the lower-right of the plot is
-        // empty, so the legend sits there without covering any bar.
         var scene2IncomeGroups = colorIncome.domain().filter(function(group) {
             return data2_bars.some(function(d) {
                 return d.income === group;
@@ -762,8 +733,7 @@
             .attr("font-size", "11px")
             .text(function(d) { return d; });
 
-        // ANNOTATION FOR SCENE 2 - anchored on Qatar (row 2), note dropped into
-        // the empty space to the right of the short bars below it.
+        // ANNOTATION FOR SCENE 2 - anchored on Qatar (row 2).
         var qatar = data2_bars.find(function(d) {
             return d.country === "Qatar";
         });
@@ -786,9 +756,8 @@
         drawAnnotation(g, annotations2);
     }
 
-    // ==========================================
+
     // SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
-    // ==========================================
     function renderScene3(selectedIncome) {
         d3.select("#scene-title").text("Scene 3: Energy Efficiency vs. Renewable Output (2021)");
         d3.select("#scene-description").text(
@@ -796,7 +765,7 @@
         );
         d3.select("#hint").text("Hover over any circle for that country's detail. Use the dropdown to highlight one income group.");
 
-        var plotHeight = height - 40;   // leaves room for the axis title
+        var plotHeight = height - 40;  
 
         var x3 = d3.scaleLinear()
             .domain([0, d3.max(data3_scatter, function(d) { return d.gdp_per_energy; }) * 1.05])
@@ -873,8 +842,6 @@
             .text("Renewable Electricity Output (% of total)");
 
         // Legend for Regions in Scene 3.
-        // Built from the data in first-seen order and drawn in the reserved
-        // right-hand gutter, matching Scene 1.
         var regions = [];
         data3_scatter.forEach(function(d) {
             if (regions.indexOf(d.region) === -1) {
@@ -902,16 +869,12 @@
             .attr("font-size", "10px")
             .text(function(d) { return shortName(d); });
 
-        // ANNOTATION FOR SCENE 3 - anchored on Ireland (far right), note placed
-        // in the empty upper-middle area where no country plots. dy is negative,
-        // so 100 is the BOTTOM of the note box; it renders at roughly y 43-92,
-        // which clears Denmark (the highest point, at y 21).
+        // ANNOTATION FOR SCENE 3 - anchored on Ireland (far right).
         var ireland = data3_scatter.find(function(d) {
             return d.country === "Ireland";
         });
 
-        // The LABEL changes with the highlightIncome parameter; the anchor stays
-        // on Ireland so the note box remains in its verified empty slot.
+        // The LABEL changes with the highlightIncome parameter, the anchor stays on Ireland.
         var label3 = "Ireland combines the highest economic energy efficiency with substantial renewable output.";
 
         if (selectedIncome !== "All") {
@@ -951,3 +914,4 @@
 
 </body>
 </html>
+
