@@ -15,7 +15,7 @@
             background-color: #f9f9f9;
         }
         #container {
-            width: 900px;
+            width: 960px;
             margin: 0 auto;
             background: #ffffff;
             padding: 20px;
@@ -23,7 +23,7 @@
             border-radius: 6px;
         }
         .nav-buttons {
-            margin: 20px 0;
+            margin: 20px 0 10px 0;
         }
         button {
             padding: 8px 16px;
@@ -40,9 +40,15 @@
             border-color: #0056b3;
             font-weight: bold;
         }
+        #hint {
+            font-size: 12px;
+            color: #666;
+            font-style: italic;
+            margin: 0 0 10px 0;
+        }
         #chart-container {
-            width: 860px;
-            height: 540px;
+            width: 920px;
+            height: 560px;
             position: relative;
         }
         /* Style for SVG Elements */
@@ -57,6 +63,8 @@
             stroke: #333;
             stroke-width: 0.5px;
         }
+
+        /* ANNOTATION TEMPLATE: identical styling in every scene */
         .annotation-group .annotation-note-label {
             font-size: 10px;
             line-height: 1.25;
@@ -66,18 +74,20 @@
             font-weight: bold;
         }
         .annotation-group .annotation-note-bg {
-            fill: white;
-            fill-opacity: 0.92;
+            fill: #ffffff;
+            fill-opacity: 0.95;
+            stroke: #444;
+            stroke-width: 0.75px;
         }
         .annotation-group .connector {
             stroke: #444;
             stroke-width: 1.25px;
             stroke-dasharray: 3, 3;
         }
-
         .annotation-group .annotation-subject {
             stroke: #444;
         }
+
         circle {
             stroke: black;
             opacity: 0.8;
@@ -92,6 +102,8 @@
             font-size: 12px;
             pointer-events: none;
             opacity: 0;
+            max-width: 220px;
+            z-index: 10;
         }
     </style>
 </head>
@@ -107,6 +119,8 @@
         <button id="btn-2" onclick="goToScene(2)">2. CO2 Emissions Leaders</button>
         <button id="btn-3" onclick="goToScene(3)">3. Efficiency vs. Renewables</button>
     </div>
+    <p id="hint"></p>
+
     <!-- Chart SVG Container -->
     <div id="chart-container">
         <div id="tooltip" class="tooltip"></div>
@@ -124,14 +138,62 @@
     var data3_scatter = [];
 
     // Main SVG Canvas & Dimensions
-    var margin = {top: 30, right: 180, bottom: 50, left: 60};
-    var width = 860 - margin.left - margin.right;
-    var height = 540 - margin.top - margin.bottom;
+    // The right margin is deliberately wide: it is the reserved "gutter" that
+    // holds the legends so they never sit on top of the plotted data.
+    var svgWidth = 920;
+    var svgHeight = 560;
+    var margin = {top: 30, right: 220, bottom: 50, left: 60};
+    var width = svgWidth - margin.left - margin.right;   // 640
+    var height = svgHeight - margin.top - margin.bottom; // 480
+
+    // HEADROOM: every y-scale is padded above the maximum data value so that a
+    // blank band is guaranteed at the top of each chart for the annotation.
+    var headroom = 1.65;
+
+    // SHARED COLOR SCALES: the domains are listed explicitly so that a region
+    // (or income group) keeps the SAME color in every scene. Letting d3 assign
+    // colors in data order made Scene 1 and Scene 3 disagree.
+    // The two spellings of the Middle East region deliberately share one color.
+    var regionColor = d3.scaleOrdinal()
+        .domain([
+            "East Asia & Pacific",
+            "Europe & Central Asia",
+            "Latin America & Caribbean",
+            "Middle East & North Africa",
+            "Middle East, North Africa, Afghanistan & Pakistan",
+            "North America",
+            "South Asia",
+            "Sub-Saharan Africa"
+        ])
+        .range([
+            "#4e79a7",
+            "#f28e2b",
+            "#59a14f",
+            "#e15759",
+            "#e15759",
+            "#b07aa1",
+            "#9c755f",
+            "#76b7b2"
+        ]);
+
+    var incomeColor = d3.scaleOrdinal()
+        .domain([
+            "High income",
+            "Upper middle income",
+            "Lower middle income",
+            "Low income"
+        ])
+        .range([
+            "#2f6f9f",
+            "#e28e2c",
+            "#59a14f",
+            "#b07aa1"
+        ]);
 
     var svg = d3.select("#chart-container")
         .append("svg")
-            .attr("width", 860)
-            .attr("height", 540)
+            .attr("width", svgWidth)
+            .attr("height", svgHeight)
         .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -146,6 +208,45 @@
             }
         }
         return d[keyName];
+    }
+
+    // HELPER FUNCTION: keeps one very long region name from overflowing the legend
+    function shortName(name) {
+        if (name === "Middle East, North Africa, Afghanistan & Pakistan") {
+            return "Middle East, N. Africa, Afg. & Pak.";
+        }
+        return name;
+    }
+
+    // ANNOTATION TEMPLATE: every scene builds its annotation through this one
+    // function, so type, class and styling are identical from scene to scene.
+    function drawAnnotation(parentGroup, annotationArray) {
+        var maker = d3.annotation()
+            .type(d3.annotationCalloutElbow)
+            .annotations(annotationArray);
+
+        parentGroup.append("g")
+            .attr("class", "annotation-group")
+            .call(maker);
+    }
+
+    // TOOLTIP HELPER: positions the tooltip relative to the chart container.
+    // (d3.event.offsetX is measured against the hovered SVG shape, not the
+    // container, which is why the tooltip used to appear in the wrong place.)
+    function moveTooltip() {
+        var container = d3.select("#chart-container").node();
+        var point = d3.mouse(container);
+        var left = point[0] + 15;
+        var top = point[1] - 10;
+
+        if (left > svgWidth - 230) {
+            left = point[0] - 235;
+        }
+        if (top < 0) {
+            top = 0;
+        }
+
+        tooltip.style("left", left + "px").style("top", top + "px");
     }
 
     // INITIALIZATION FUNCTION: Loads CSV files safely
@@ -182,7 +283,7 @@
                 renewable_pct: Math.max(0, +getVal(d, "renewable_pct")),
                 gdp_per_energy: +getVal(d, "gdp_per_energy"),
                 region: getVal(d, "Region"),
-                income: getVal(d, "Income Group")
+                income: (getVal(d, "Income Group") || "").trim()
             };
         });
 
@@ -202,6 +303,7 @@
     // MAIN CONTROLLER FUNCTION
     function renderScene() {
         svg.selectAll("*").remove();
+        tooltip.style("opacity", 0);
 
         if (currentScene === 1) {
             renderScene1();
@@ -216,16 +318,18 @@
     // SCENE 1: RENEWABLE ADOPTION TRENDS
     // ==========================================
     function renderScene1() {
-        d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990–2021)");
+        d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990-2021)");
         d3.select("#scene-description").text(
             "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe & Central Asia geographically, and High-Income nations economically."
         );
+        d3.select("#hint").text("Hover over any line to see the series name and its 2021 value.");
 
-        var subHeight = 160;
+        var subHeight = 170;
+        var noteY = 6;   // top edge of the annotation, inside the blank headroom band
 
         // --- CHART 1A: REGIONAL TRENDS (TOP) ---
         var g1 = svg.append("g")
-            .attr("transform", "translate(0, 10)");
+            .attr("transform", "translate(0, 15)");
 
         var x1 = d3.scaleLinear()
             .domain(d3.extent(data1_region, function(d) { return d.year; }))
@@ -234,10 +338,10 @@
         var maxY1 = d3.max(data1_region, function(d) { return d.value; });
 
         var y1 = d3.scaleLinear()
-            .domain([0, maxY1])
+            .domain([0, maxY1 * headroom])
             .range([subHeight, 0]);
 
-        var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
+        var colorRegion = regionColor;
 
         var nestedRegion = d3.nest()
             .key(function(d) { return d.country; })
@@ -254,7 +358,23 @@
             .append("path")
                 .attr("class", "line-path")
                 .attr("d", function(d) { return lineGenerator1(d.values); })
-                .attr("stroke", function(d) { return colorRegion(d.key); });
+                .attr("stroke", function(d) { return colorRegion(d.key); })
+                .attr("cursor", "pointer")
+                .on("mouseover", function(d) {
+                    d3.select(this).attr("stroke-width", 5);
+                    var last = d.values[d.values.length - 1];
+                    tooltip.html(
+                        "<strong>" + d.key + "</strong><br/>" +
+                        last.year + ": " + last.value.toFixed(1) + "%"
+                    );
+                    moveTooltip();
+                    tooltip.transition().duration(100).style("opacity", 0.95);
+                })
+                .on("mousemove", moveTooltip)
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 2.5);
+                    tooltip.transition().duration(200).style("opacity", 0);
+                });
 
         // Axes
         g1.append("g")
@@ -271,13 +391,13 @@
             .attr("font-size", "13px")
             .text("Renewable Adoption (% of Total) by Region");
 
-        // Legend
+        // Legend (drawn in the reserved right-hand gutter)
         var legend1 = g1.selectAll(".legend-region")
             .data(nestedRegion)
             .enter()
             .append("g")
                 .attr("transform", function(d, i) {
-                    return "translate(" + (width + 10) + "," + (i * 18) + ")";
+                    return "translate(" + (width + 15) + "," + (i * 18) + ")";
                 });
 
         legend1.append("rect")
@@ -290,35 +410,33 @@
             .attr("x", 14)
             .attr("y", 9)
             .attr("font-size", "10px")
-            .text(function(d) { return d.key; });
+            .text(function(d) { return shortName(d.key); });
 
-        // ANNOTATION 1A
+        // ANNOTATION 1A - anchored on the 2021 Europe & Central Asia point,
+        // with the note parked in the blank band above every line.
+        var euro2021 = 17.16;
+        var anchorY1A = y1(euro2021);
+
         var annotations1A = [
             {
                 note: {
-                    label: "Europe & Central Asia leads regional adoption, reaching about 17.3% in 2021.",
+                    label: "Europe & Central Asia leads, at 17.2% in 2021.",
                     title: "Regional Leader",
-                    wrap: 145,
+                    wrap: 175,
                     padding: 8
                 },
                 x: x1(2021),
-                y: y1(17.3),
-                dx: -175,
-                dy: -12
+                y: anchorY1A,
+                dx: 410 - x1(2021),
+                dy: noteY - anchorY1A
             }
         ];
 
-        var makeAnnotations1A = d3.annotation()
-            .type(d3.annotationCalloutElbow)
-            .annotations(annotations1A);
-
-        g1.append("g")
-            .attr("class", "annotation-group")
-            .call(makeAnnotations1A);
+        drawAnnotation(g1, annotations1A);
 
         // --- CHART 1B: INCOME GROUP TRENDS (BOTTOM) ---
         var g2 = svg.append("g")
-            .attr("transform", "translate(0, 240)");
+            .attr("transform", "translate(0, 275)");
 
         var x2 = d3.scaleLinear()
             .domain(d3.extent(data1_income, function(d) { return d.year; }))
@@ -327,11 +445,10 @@
         var maxY2 = d3.max(data1_income, function(d) { return d.value; });
 
         var y2 = d3.scaleLinear()
-            .domain([0, maxY2])
+            .domain([0, maxY2 * headroom])
             .range([subHeight, 0]);
 
-        var colorIncome = d3.scaleOrdinal()
-            .range(["#d95f02", "#7570b3", "#e7298a", "#66a61e"]);
+        var colorIncome = incomeColor;
 
         var nestedIncome = d3.nest()
             .key(function(d) { return d.country; })
@@ -348,7 +465,23 @@
             .append("path")
                 .attr("class", "line-path")
                 .attr("d", function(d) { return lineGenerator2(d.values); })
-                .attr("stroke", function(d) { return colorIncome(d.key); });
+                .attr("stroke", function(d) { return colorIncome(d.key); })
+                .attr("cursor", "pointer")
+                .on("mouseover", function(d) {
+                    d3.select(this).attr("stroke-width", 5);
+                    var last = d.values[d.values.length - 1];
+                    tooltip.html(
+                        "<strong>" + d.key + "</strong><br/>" +
+                        last.year + ": " + last.value.toFixed(1) + "%"
+                    );
+                    moveTooltip();
+                    tooltip.transition().duration(100).style("opacity", 0.95);
+                })
+                .on("mousemove", moveTooltip)
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 2.5);
+                    tooltip.transition().duration(200).style("opacity", 0);
+                });
 
         // Axes
         g2.append("g")
@@ -365,13 +498,13 @@
             .attr("font-size", "13px")
             .text("Renewable Adoption (% of Total) by Income Group");
 
-        // Legend
+        // Legend (same reserved gutter, same offsets as Chart 1A)
         var legend2 = g2.selectAll(".legend-income")
             .data(nestedIncome)
             .enter()
             .append("g")
                 .attr("transform", function(d, i) {
-                    return "translate(" + (width + 10) + "," + (i * 18) + ")";
+                    return "translate(" + (width + 15) + "," + (i * 18) + ")";
                 });
 
         legend2.append("rect")
@@ -386,29 +519,26 @@
             .attr("font-size", "10px")
             .text(function(d) { return d.key; });
 
-        // ANNOTATION 1B
+        // ANNOTATION 1B - same template, same note position as 1A
+        var high2021 = 14.09;
+        var anchorY1B = y2(high2021);
+
         var annotations1B = [
             {
                 note: {
-                    label: "High-income economies exceed 14%, while low-income economies remain near zero.",
-                title: "Income Gap",
-                wrap: 140,
-                padding: 8
+                    label: "High-income economies exceed 14%; low-income economies stay near zero.",
+                    title: "Income Gap",
+                    wrap: 175,
+                    padding: 8
                 },
                 x: x2(2021),
-                y: y2(14.0),
-                dx: -175,
-                dy: -18
+                y: anchorY1B,
+                dx: 410 - x2(2021),
+                dy: noteY - anchorY1B
             }
         ];
 
-        var makeAnnotations1B = d3.annotation()
-            .type(d3.annotationCalloutElbow)
-            .annotations(annotations1B);
-
-        g2.append("g")
-            .attr("class", "annotation-group")
-            .call(makeAnnotations1B);
+        drawAnnotation(g2, annotations1B);
     }
 
     // ==========================================
@@ -419,36 +549,28 @@
         d3.select("#scene-description").text(
             "Per-capita carbon emissions are heavily concentrated in wealthy economies: 18 out of the top 20 emitters are High-Income nations, alongside oil-rich and small island states."
         );
+        d3.select("#hint").text("Hover over any bar to see its region and income group.");
 
         // Sort bars descending
         data2_bars.sort(function(a, b) { return b.value - a.value; });
 
-        var y2 = d3.scaleBand()
+        var barsHeight = height - 40;   // leaves room for the axis title
+
+        var yBars = d3.scaleBand()
             .domain(data2_bars.map(function(d) { return d.country; }))
-            .range([0, height])
+            .range([0, barsHeight])
             .padding(0.2);
 
-        var colorIncome = d3.scaleOrdinal()
-            .domain([
-                "High income",
-                "Upper middle income",
-                "Lower middle income",
-                "Low income"
-            ])
-            .range([
-                "#2f6f9f",
-                "#e28e2c",
-                "#59a14f",
-                "#b07aa1"
-            ]);
+        var colorIncome = incomeColor;
 
+        // 140px left offset holds the country name axis labels
         var g = svg.append("g")
-            .attr("transform", "translate(120, 10)");
+            .attr("transform", "translate(140, 5)");
 
-        var adjWidth = width - 120;
-        var barAreaWidth = adjWidth - 45;
+        var adjWidth = width - 140;          // 500
+        var barAreaWidth = adjWidth - 60;    // 440, the extra 60 holds value labels
 
-        var x2 = d3.scaleLinear()
+        var xBars = d3.scaleLinear()
             .domain([0, d3.max(data2_bars, function(d) { return d.value; })])
             .nice()
             .range([0, barAreaWidth]);
@@ -459,12 +581,29 @@
             .enter()
             .append("rect")
                 .attr("class", "bar-rect")
-                .attr("y", function(d) { return y2(d.country); })
-                .attr("height", y2.bandwidth())
+                .attr("y", function(d) { return yBars(d.country); })
+                .attr("height", yBars.bandwidth())
                 .attr("x", 0)
-                .attr("width", function(d) { return x2(d.value); })
+                .attr("width", function(d) { return xBars(d.value); })
                 .style("fill", function(d) {
                     return colorIncome(d.income) || "#999";
+                })
+                .attr("cursor", "pointer")
+                .on("mouseover", function(d) {
+                    d3.select(this).attr("stroke-width", 2);
+                    tooltip.html(
+                        "<strong>" + d.country + "</strong><br/>" +
+                        "Region: " + d.region + "<br/>" +
+                        "Income: " + (d.income || "n/a") + "<br/>" +
+                        "CO2: " + d.value.toFixed(1) + " t/person"
+                    );
+                    moveTooltip();
+                    tooltip.transition().duration(100).style("opacity", 0.95);
+                })
+                .on("mousemove", moveTooltip)
+                .on("mouseout", function() {
+                    d3.select(this).attr("stroke-width", 0.5);
+                    tooltip.transition().duration(200).style("opacity", 0);
                 });
 
         // Add Value Labels
@@ -473,29 +612,31 @@
             .enter()
             .append("text")
                 .attr("y", function(d) {
-                    return y2(d.country) + y2.bandwidth() / 2 + 4;
+                    return yBars(d.country) + yBars.bandwidth() / 2 + 4;
                 })
-                .attr("x", function(d) { return x2(d.value) + 5; })
+                .attr("x", function(d) { return xBars(d.value) + 5; })
                 .attr("font-size", "10px")
                 .text(function(d) { return d.value.toFixed(1); });
 
         // Axes
         g.append("g")
-            .call(d3.axisLeft(y2));
+            .call(d3.axisLeft(yBars));
 
         g.append("g")
-            .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(x2));
+            .attr("transform", "translate(0," + barsHeight + ")")
+            .call(d3.axisBottom(xBars));
 
         // Axis Title
         g.append("text")
-            .attr("x", adjWidth / 2)
-            .attr("y", height + 38)
+            .attr("x", barAreaWidth / 2)
+            .attr("y", barsHeight + 38)
             .attr("text-anchor", "middle")
             .attr("font-size", "11px")
             .text("Metric Tons CO2e Per Capita (2021)");
 
-        // Legend for Scene 2
+        // Legend for Scene 2.
+        // Because the bars are sorted descending, the lower-right of the plot is
+        // empty, so the legend sits there without covering any bar.
         var scene2IncomeGroups = colorIncome.domain().filter(function(group) {
             return data2_bars.some(function(d) {
                 return d.income === group;
@@ -507,7 +648,7 @@
             .enter()
             .append("g")
             .attr("transform", function(d, i) {
-                return "translate(" + (adjWidth + 15) + "," + (height - 65 + i * 20) + ")";
+                return "translate(300," + (barsHeight - 95 + i * 20) + ")";
             });
 
         legend2.append("rect")
@@ -522,35 +663,28 @@
             .attr("font-size", "11px")
             .text(function(d) { return d; });
 
-        // ANNOTATION FOR SCENE 2
+        // ANNOTATION FOR SCENE 2 - anchored on Qatar (row 2), note dropped into
+        // the empty space to the right of the short bars below it.
         var qatar = data2_bars.find(function(d) {
             return d.country === "Qatar";
         });
-
-        var annotationPanelX = adjWidth + 15;
 
         var annotations2 = qatar ? [
             {
                 note: {
                     label: "Qatar illustrates a broader pattern: 18 of the top 20 emitters are high-income economies.",
                     title: "Income Concentration",
-                    wrap: 145,
+                    wrap: 170,
                     padding: 8
                 },
-                x: x2(qatar.value),
-            y: y2(qatar.country) + y2.bandwidth() / 2,
-            dx: annotationPanelX - x2(qatar.value),
-            dy: 35
+                x: xBars(qatar.value),
+                y: yBars(qatar.country) + yBars.bandwidth() / 2,
+                dx: 300 - xBars(qatar.value),
+                dy: 95 - (yBars(qatar.country) + yBars.bandwidth() / 2)
             }
         ] : [];
 
-        var makeAnnotations2 = d3.annotation()
-            .type(d3.annotationCalloutElbow)
-            .annotations(annotations2);
-
-        g.append("g")
-            .attr("class", "annotation-group")
-            .call(makeAnnotations2);
+        drawAnnotation(g, annotations2);
     }
 
     // ==========================================
@@ -561,6 +695,9 @@
         d3.select("#scene-description").text(
             "High renewable adoption spans across nations regardless of economic efficiency. Hover over circles to explore individual country specifics."
         );
+        d3.select("#hint").text("Hover over any circle for that country's region, income group and both measures.");
+
+        var plotHeight = height - 40;   // leaves room for the axis title
 
         var x3 = d3.scaleLinear()
             .domain([0, d3.max(data3_scatter, function(d) { return d.gdp_per_energy; }) * 1.05])
@@ -568,12 +705,12 @@
 
         var y3 = d3.scaleLinear()
             .domain([0, d3.max(data3_scatter, function(d) { return d.renewable_pct; }) * 1.05])
-            .range([height - 20, 0]);
+            .range([plotHeight, 0]);
 
-        var colorRegion = d3.scaleOrdinal(d3.schemeCategory10);
+        var colorRegion = regionColor;
 
         var g = svg.append("g")
-            .attr("transform", "translate(10, 10)");
+            .attr("transform", "translate(0, 10)");
 
         // Draw Scatterplot Circles
         g.selectAll("circle")
@@ -586,40 +723,35 @@
                 .attr("fill", function(d) { return colorRegion(d.region); })
                 .attr("stroke", "black")
                 .attr("opacity", 0.75)
+                .attr("cursor", "pointer")
                 // TOOLTIP MOUSE EVENTS
                 .on("mouseover", function(d) {
                     d3.select(this)
                         .attr("r", 10)
                         .attr("opacity", 1);
 
-                    tooltip.transition()
-                        .duration(100)
-                        .style("opacity", 0.95);
-
                     tooltip.html(
                         "<strong>" + d.country + "</strong><br/>" +
                         "Region: " + d.region + "<br/>" +
-                        "Income: " + d.income + "<br/>" +
+                        "Income: " + (d.income || "n/a") + "<br/>" +
                         "Renewables: " + d.renewable_pct.toFixed(1) + "%<br/>" +
                         "GDP / Energy: $" + d.gdp_per_energy.toFixed(1)
-                    )
-                    .style("left", (d3.event.offsetX + 15) + "px")
-                    .style("top", (d3.event.offsetY - 35) + "px");
+                    );
+                    moveTooltip();
+                    tooltip.transition().duration(100).style("opacity", 0.95);
                 })
-                .attr("cursor", "pointer")
+                .on("mousemove", moveTooltip)
                 .on("mouseout", function() {
                     d3.select(this)
                         .attr("r", 6)
                         .attr("opacity", 0.75);
 
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", 0);
+                    tooltip.transition().duration(200).style("opacity", 0);
                 });
 
         // Axes
         g.append("g")
-            .attr("transform", "translate(0," + (height - 20) + ")")
+            .attr("transform", "translate(0," + plotHeight + ")")
             .call(d3.axisBottom(x3));
 
         g.append("g")
@@ -628,31 +760,39 @@
         // Axis Labels
         g.append("text")
             .attr("x", width / 2)
-            .attr("y", height + 20)
+            .attr("y", plotHeight + 38)
             .attr("text-anchor", "middle")
             .attr("font-size", "11px")
             .text("GDP Per Unit of Energy Use (PPP 2021 $)");
 
         g.append("text")
             .attr("transform", "rotate(-90)")
-            .attr("x", -height / 2)
+            .attr("x", -plotHeight / 2)
             .attr("y", -40)
             .attr("text-anchor", "middle")
             .attr("font-size", "11px")
             .text("Renewable Electricity Output (% of total)");
 
-        // Legend for Regions in Scene 3
-        var regions = colorRegion.domain();
+        // Legend for Regions in Scene 3.
+        // Built from the data in first-seen order and drawn in the reserved
+        // right-hand gutter, matching Scene 1.
+        var regions = [];
+        data3_scatter.forEach(function(d) {
+            if (regions.indexOf(d.region) === -1) {
+                regions.push(d.region);
+            }
+        });
 
         var legend = g.selectAll(".legend-scatter")
             .data(regions)
             .enter()
             .append("g")
                 .attr("transform", function(d, i) {
-                    return "translate(" + (width - 150) + "," + (i * 18 + 10) + ")";
+                    return "translate(" + (width + 20) + "," + (i * 18) + ")";
                 });
 
         legend.append("rect")
+            .attr("class", "legend-box")
             .attr("width", 10)
             .attr("height", 10)
             .attr("fill", function(d) { return colorRegion(d); });
@@ -661,9 +801,10 @@
             .attr("x", 14)
             .attr("y", 9)
             .attr("font-size", "10px")
-            .text(function(d) { return d; });
+            .text(function(d) { return shortName(d); });
 
-        // ANNOTATION FOR SCENE 3
+        // ANNOTATION FOR SCENE 3 - anchored on Ireland (far right), note placed
+        // in the empty upper-middle area where no country plots.
         var ireland = data3_scatter.find(function(d) {
             return d.country === "Ireland";
         });
@@ -671,27 +812,22 @@
         var annotations3 = ireland ? [
             {
                 note: {
-                    label: "Ireland combines high economic energy efficiency with substantial renewable output.",
+                    label: "Ireland combines the highest economic energy efficiency with substantial renewable output.",
                     title: "Different Pathways",
-                    wrap: 125,
+                    wrap: 160,
                     padding: 8
                 },
                 x: x3(ireland.gdp_per_energy),
                 y: y3(ireland.renewable_pct),
-                dx: 35,
-                dy: 60
+                dx: 400 - x3(ireland.gdp_per_energy),
+                dy: 45 - y3(ireland.renewable_pct)
             }
         ] : [];
 
-        var makeAnnotations3 = d3.annotation()
-            .type(d3.annotationCalloutElbow)
-            .annotations(annotations3);
-
-        g.append("g")
-            .attr("class", "annotation-group")
-            .call(makeAnnotations3);
+        drawAnnotation(g, annotations3);
     }
 </script>
 
 </body>
 </html>
+
