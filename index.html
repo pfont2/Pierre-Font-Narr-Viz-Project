@@ -40,6 +40,14 @@
             border-color: #0056b3;
             font-weight: bold;
         }
+        .filter-row {
+            margin: 0 0 8px 0;
+            font-size: 13px;
+        }
+        .filter-row select {
+            font-size: 13px;
+            padding: 4px 6px;
+        }
         #hint {
             font-size: 12px;
             color: #666;
@@ -88,9 +96,10 @@
             stroke: #444;
         }
 
+        /* NOTE: no opacity here on purpose. A CSS rule would override the
+           opacity set in JavaScript, which would break the highlight dimming. */
         circle {
             stroke: black;
-            opacity: 0.8;
         }
         /* Simple Tooltip Styling for Scene 3 */
         .tooltip {
@@ -119,6 +128,18 @@
         <button id="btn-2" onclick="goToScene(2)">2. CO2 Emissions Leaders</button>
         <button id="btn-3" onclick="goToScene(3)">3. Efficiency vs. Renewables</button>
     </div>
+
+    <!-- Trigger: income-group filter. Drives the highlightIncome parameter. -->
+    <div class="filter-row">
+        <label for="income-select">Highlight an income group:</label>
+        <select id="income-select" onchange="setHighlight(this.value)">
+            <option value="All">All groups (no highlight)</option>
+            <option value="High income">High income</option>
+            <option value="Upper middle income">Upper middle income</option>
+            <option value="Lower middle income">Lower middle income</option>
+            <option value="Low income">Low income</option>
+        </select>
+    </div>
     <p id="hint"></p>
 
     <!-- Chart SVG Container -->
@@ -129,7 +150,12 @@
 
 <script>
     // PARAMETERS (State Variables)
+    // currentScene   : which scene is showing (1, 2 or 3)
+    // highlightIncome: which income group is emphasised ("All" = none)
+    // Together these two variables define the state of the visualization, and
+    // both are passed into the scene-building functions below.
     var currentScene = 1;
+    var highlightIncome = "All";
 
     // Data Storage Variables
     var data1_region = [];
@@ -230,6 +256,15 @@
             .call(maker);
     }
 
+    // HIGHLIGHT HELPER: opacity for a mark, given the highlightIncome parameter.
+    // "All" means nothing is dimmed; otherwise non-matching marks fade back.
+    function fade(group, selected) {
+        if (selected === "All" || group === selected) {
+            return 1;
+        }
+        return 0.15;
+    }
+
     // TOOLTIP HELPER: positions the tooltip relative to the chart container.
     // (d3.event.offsetX is measured against the hovered SVG shape, not the
     // container, which is why the tooltip used to appear in the wrong place.)
@@ -247,6 +282,59 @@
         }
 
         tooltip.style("left", left + "px").style("top", top + "px");
+    }
+
+    // LINE TOOLTIP: reads the year under the cursor and reports THAT year's
+    // value, rather than always reporting the final year of the series.
+    function lineTooltip(series, node, xScale, yScale) {
+        var parent = node.parentNode;
+        var m = d3.mouse(parent);
+        var firstYear = xScale.domain()[0];
+        var lastYear = xScale.domain()[1];
+
+        var year = Math.round(xScale.invert(m[0]));
+        if (year < firstYear) { year = firstYear; }
+        if (year > lastYear) { year = lastYear; }
+
+        var point = null;
+        for (var i = 0; i < series.values.length; i++) {
+            if (series.values[i].year === year) {
+                point = series.values[i];
+            }
+        }
+        if (!point) { return; }
+
+        // Small marker so the reader can see which year is being read off.
+        d3.select(parent).selectAll(".focus-dot").remove();
+        d3.select(parent).append("circle")
+            .attr("class", "focus-dot")
+            .attr("cx", xScale(point.year))
+            .attr("cy", yScale(point.value))
+            .attr("r", 4.5)
+            .attr("fill", "#ffffff")
+            .attr("stroke", "#222222")
+            .attr("stroke-width", 1.5)
+            .style("pointer-events", "none");
+
+        tooltip.html(
+            "<strong>" + series.key + "</strong><br/>" +
+            point.year + ": " + point.value.toFixed(1) + "%"
+        );
+        moveTooltip();
+    }
+
+    function clearFocus(node) {
+        d3.select(node.parentNode).selectAll(".focus-dot").remove();
+    }
+
+    // Returns the highest point of a series (used to anchor Scene 1B's
+    // annotation on whichever income group the user has selected).
+    function peakOf(series) {
+        var best = series.values[0];
+        for (var i = 1; i < series.values.length; i++) {
+            if (series.values[i].value > best.value) { best = series.values[i]; }
+        }
+        return best;
     }
 
     // INITIALIZATION FUNCTION: Loads CSV files safely
@@ -300,32 +388,47 @@
         renderScene();
     }
 
+    // TRIGGER FUNCTION: Updates the highlightIncome parameter & redraws
+    function setHighlight(group) {
+        highlightIncome = group;
+        renderScene();
+    }
+
     // MAIN CONTROLLER FUNCTION
+    // Both parameters are passed in as arguments, so each scene is built
+    // entirely from the current state.
     function renderScene() {
         svg.selectAll("*").remove();
         tooltip.style("opacity", 0);
+        d3.select("#income-select").property("value", highlightIncome);
 
         if (currentScene === 1) {
-            renderScene1();
+            renderScene1(highlightIncome);
         } else if (currentScene === 2) {
-            renderScene2();
+            renderScene2(highlightIncome);
         } else if (currentScene === 3) {
-            renderScene3();
+            renderScene3(highlightIncome);
         }
     }
 
     // ==========================================
     // SCENE 1: RENEWABLE ADOPTION TRENDS
     // ==========================================
-    function renderScene1() {
+    function renderScene1(selectedIncome) {
         d3.select("#scene-title").text("Scene 1: Renewable Electricity Adoption (1990-2021)");
         d3.select("#scene-description").text(
             "Global renewable energy adoption (excluding hydro) has expanded significantly, led rapidly by Europe & Central Asia geographically, and High-Income nations economically."
         );
-        d3.select("#hint").text("Hover over any line to see the series name and its 2021 value.");
+        d3.select("#hint").text("Hover anywhere along a line to read that year's value. Use the dropdown to highlight one income group in the lower chart.");
 
         var subHeight = 170;
-        var noteY = 6;   // top edge of the annotation, inside the blank headroom band
+
+        // IMPORTANT: d3-annotation anchors the note box at the corner NEAREST the
+        // data point. Because dy is negative here (the note sits above the point),
+        // this value is the BOTTOM of the note and the box grows upward from it.
+        // 50 puts the box at roughly y 5-42: clear of the chart title above
+        // (which ends at y -5) and clear of the lines below (which start at y 67).
+        var noteBottomY = 50;
 
         // --- CHART 1A: REGIONAL TRENDS (TOP) ---
         var g1 = svg.append("g")
@@ -362,17 +465,13 @@
                 .attr("cursor", "pointer")
                 .on("mouseover", function(d) {
                     d3.select(this).attr("stroke-width", 5);
-                    var last = d.values[d.values.length - 1];
-                    tooltip.html(
-                        "<strong>" + d.key + "</strong><br/>" +
-                        last.year + ": " + last.value.toFixed(1) + "%"
-                    );
-                    moveTooltip();
+                    lineTooltip(d, this, x1, y1);
                     tooltip.transition().duration(100).style("opacity", 0.95);
                 })
-                .on("mousemove", moveTooltip)
+                .on("mousemove", function(d) { lineTooltip(d, this, x1, y1); })
                 .on("mouseout", function() {
                     d3.select(this).attr("stroke-width", 2.5);
+                    clearFocus(this);
                     tooltip.transition().duration(200).style("opacity", 0);
                 });
 
@@ -428,7 +527,7 @@
                 x: x1(2021),
                 y: anchorY1A,
                 dx: 410 - x1(2021),
-                dy: noteY - anchorY1A
+                dy: noteBottomY - anchorY1A
             }
         ];
 
@@ -466,20 +565,18 @@
                 .attr("class", "line-path")
                 .attr("d", function(d) { return lineGenerator2(d.values); })
                 .attr("stroke", function(d) { return colorIncome(d.key); })
+                .attr("stroke-opacity", function(d) { return fade(d.key, selectedIncome); })
                 .attr("cursor", "pointer")
                 .on("mouseover", function(d) {
-                    d3.select(this).attr("stroke-width", 5);
-                    var last = d.values[d.values.length - 1];
-                    tooltip.html(
-                        "<strong>" + d.key + "</strong><br/>" +
-                        last.year + ": " + last.value.toFixed(1) + "%"
-                    );
-                    moveTooltip();
+                    d3.select(this).attr("stroke-width", 5).attr("stroke-opacity", 1);
+                    lineTooltip(d, this, x2, y2);
                     tooltip.transition().duration(100).style("opacity", 0.95);
                 })
-                .on("mousemove", moveTooltip)
-                .on("mouseout", function() {
-                    d3.select(this).attr("stroke-width", 2.5);
+                .on("mousemove", function(d) { lineTooltip(d, this, x2, y2); })
+                .on("mouseout", function(d) {
+                    d3.select(this).attr("stroke-width", 2.5)
+                        .attr("stroke-opacity", fade(d.key, selectedIncome));
+                    clearFocus(this);
                     tooltip.transition().duration(200).style("opacity", 0);
                 });
 
@@ -507,6 +604,8 @@
                     return "translate(" + (width + 15) + "," + (i * 18) + ")";
                 });
 
+        legend2.attr("opacity", function(d) { return fade(d.key, selectedIncome); });
+
         legend2.append("rect")
             .attr("class", "legend-box")
             .attr("width", 10)
@@ -519,22 +618,46 @@
             .attr("font-size", "10px")
             .text(function(d) { return d.key; });
 
-        // ANNOTATION 1B - same template, same note position as 1A
-        var high2021 = 14.09;
-        var anchorY1B = y2(high2021);
+        // ANNOTATION 1B - this annotation CHANGES with the highlightIncome
+        // parameter. With no group selected it states the overall income gap;
+        // with a group selected it moves to that group's peak and describes it.
+        // Every income group peaks in 2014 or later and below the blank band,
+        // so dx and dy stay negative and the note box lands in the same slot.
+        var anchorX1B, anchorY1B, label1B, title1B;
+
+        var selectedSeries = null;
+        for (var si = 0; si < nestedIncome.length; si++) {
+            if (nestedIncome[si].key === selectedIncome) {
+                selectedSeries = nestedIncome[si];
+            }
+        }
+
+        if (selectedSeries) {
+            var pk = peakOf(selectedSeries);
+            anchorX1B = x2(pk.year);
+            anchorY1B = y2(pk.value);
+            title1B = "Selected Group";
+            label1B = selectedIncome + " peaks at " + pk.value.toFixed(1) +
+                      "% (" + pk.year + ").";
+        } else {
+            anchorX1B = x2(2021);
+            anchorY1B = y2(14.09);
+            title1B = "Income Gap";
+            label1B = "High-income economies exceed 14%; low-income economies stay near zero.";
+        }
 
         var annotations1B = [
             {
                 note: {
-                    label: "High-income economies exceed 14%; low-income economies stay near zero.",
-                    title: "Income Gap",
+                    label: label1B,
+                    title: title1B,
                     wrap: 175,
                     padding: 8
                 },
-                x: x2(2021),
+                x: anchorX1B,
                 y: anchorY1B,
-                dx: 410 - x2(2021),
-                dy: noteY - anchorY1B
+                dx: 410 - anchorX1B,
+                dy: noteBottomY - anchorY1B
             }
         ];
 
@@ -544,12 +667,12 @@
     // ==========================================
     // SCENE 2: TOP CO2 EMITTERS PER CAPITA
     // ==========================================
-    function renderScene2() {
+    function renderScene2(selectedIncome) {
         d3.select("#scene-title").text("Scene 2: Top Countries by CO2 Emissions Per Capita (2021)");
         d3.select("#scene-description").text(
             "Per-capita carbon emissions are heavily concentrated in wealthy economies: 18 out of the top 20 emitters are High-Income nations, alongside oil-rich and small island states."
         );
-        d3.select("#hint").text("Hover over any bar to see its region and income group.");
+        d3.select("#hint").text("Hover over any bar for its region and income group. Use the dropdown to highlight one income group.");
 
         // Sort bars descending
         data2_bars.sort(function(a, b) { return b.value - a.value; });
@@ -588,9 +711,10 @@
                 .style("fill", function(d) {
                     return colorIncome(d.income) || "#999";
                 })
+                .attr("opacity", function(d) { return fade(d.income, selectedIncome); })
                 .attr("cursor", "pointer")
                 .on("mouseover", function(d) {
-                    d3.select(this).attr("stroke-width", 2);
+                    d3.select(this).attr("stroke-width", 2).attr("opacity", 1);
                     tooltip.html(
                         "<strong>" + d.country + "</strong><br/>" +
                         "Region: " + d.region + "<br/>" +
@@ -601,8 +725,9 @@
                     tooltip.transition().duration(100).style("opacity", 0.95);
                 })
                 .on("mousemove", moveTooltip)
-                .on("mouseout", function() {
-                    d3.select(this).attr("stroke-width", 0.5);
+                .on("mouseout", function(d) {
+                    d3.select(this).attr("stroke-width", 0.5)
+                        .attr("opacity", fade(d.income, selectedIncome));
                     tooltip.transition().duration(200).style("opacity", 0);
                 });
 
@@ -651,6 +776,8 @@
                 return "translate(300," + (barsHeight - 95 + i * 20) + ")";
             });
 
+        legend2.attr("opacity", function(d) { return fade(d, selectedIncome); });
+
         legend2.append("rect")
             .attr("width", 12)
             .attr("height", 12)
@@ -669,10 +796,33 @@
             return d.country === "Qatar";
         });
 
+        // The LABEL changes with the highlightIncome parameter; the anchor stays
+        // on Qatar so the note box remains in its verified empty slot.
+        var label2 = "Qatar illustrates a broader pattern: 18 of the top 20 emitters are high-income economies.";
+
+        if (selectedIncome !== "All") {
+            var groupCount = 0;
+            var groupTop = null;
+            for (var bi = 0; bi < data2_bars.length; bi++) {
+                if (data2_bars[bi].income === selectedIncome) {
+                    groupCount = groupCount + 1;
+                    if (!groupTop) { groupTop = data2_bars[bi]; }
+                }
+            }
+            if (groupCount === 0) {
+                label2 = "No " + selectedIncome.toLowerCase() +
+                         " country appears among the top 20 emitters at all.";
+            } else {
+                label2 = selectedIncome + " accounts for " + groupCount +
+                         " of the top 20, led by " + groupTop.country +
+                         " at " + groupTop.value.toFixed(1) + " t/person.";
+            }
+        }
+
         var annotations2 = qatar ? [
             {
                 note: {
-                    label: "Qatar illustrates a broader pattern: 18 of the top 20 emitters are high-income economies.",
+                    label: label2,
                     title: "Income Concentration",
                     wrap: 170,
                     padding: 8
@@ -690,12 +840,12 @@
     // ==========================================
     // SCENE 3: ENERGY EFFICIENCY VS. RENEWABLE YIELD
     // ==========================================
-    function renderScene3() {
+    function renderScene3(selectedIncome) {
         d3.select("#scene-title").text("Scene 3: Energy Efficiency vs. Renewable Output (2021)");
         d3.select("#scene-description").text(
             "High renewable adoption spans across nations regardless of economic efficiency. Hover over circles to explore individual country specifics."
         );
-        d3.select("#hint").text("Hover over any circle for that country's region, income group and both measures.");
+        d3.select("#hint").text("Hover over any circle for that country's detail. Use the dropdown to highlight one income group.");
 
         var plotHeight = height - 40;   // leaves room for the axis title
 
@@ -722,13 +872,13 @@
                 .attr("r", 6)
                 .attr("fill", function(d) { return colorRegion(d.region); })
                 .attr("stroke", "black")
-                .attr("opacity", 0.75)
+                .style("opacity", function(d) { return 0.75 * fade(d.income, selectedIncome); })
                 .attr("cursor", "pointer")
                 // TOOLTIP MOUSE EVENTS
                 .on("mouseover", function(d) {
                     d3.select(this)
                         .attr("r", 10)
-                        .attr("opacity", 1);
+                        .style("opacity", 1);
 
                     tooltip.html(
                         "<strong>" + d.country + "</strong><br/>" +
@@ -741,10 +891,10 @@
                     tooltip.transition().duration(100).style("opacity", 0.95);
                 })
                 .on("mousemove", moveTooltip)
-                .on("mouseout", function() {
+                .on("mouseout", function(d) {
                     d3.select(this)
                         .attr("r", 6)
-                        .attr("opacity", 0.75);
+                        .style("opacity", 0.75 * fade(d.income, selectedIncome));
 
                     tooltip.transition().duration(200).style("opacity", 0);
                 });
@@ -804,15 +954,37 @@
             .text(function(d) { return shortName(d); });
 
         // ANNOTATION FOR SCENE 3 - anchored on Ireland (far right), note placed
-        // in the empty upper-middle area where no country plots.
+        // in the empty upper-middle area where no country plots. dy is negative,
+        // so 100 is the BOTTOM of the note box; it renders at roughly y 43-92,
+        // which clears Denmark (the highest point, at y 21).
         var ireland = data3_scatter.find(function(d) {
             return d.country === "Ireland";
         });
 
+        // The LABEL changes with the highlightIncome parameter; the anchor stays
+        // on Ireland so the note box remains in its verified empty slot.
+        var label3 = "Ireland combines the highest economic energy efficiency with substantial renewable output.";
+
+        if (selectedIncome !== "All") {
+            var groupLeader = null;
+            for (var ci = 0; ci < data3_scatter.length; ci++) {
+                if (data3_scatter[ci].income === selectedIncome) {
+                    if (!groupLeader || data3_scatter[ci].renewable_pct > groupLeader.renewable_pct) {
+                        groupLeader = data3_scatter[ci];
+                    }
+                }
+            }
+            if (groupLeader) {
+                label3 = "Ireland leads on efficiency. Among " + selectedIncome.toLowerCase() +
+                         " economies, " + groupLeader.country + " leads renewables at " +
+                         groupLeader.renewable_pct.toFixed(1) + "%.";
+            }
+        }
+
         var annotations3 = ireland ? [
             {
                 note: {
-                    label: "Ireland combines the highest economic energy efficiency with substantial renewable output.",
+                    label: label3,
                     title: "Different Pathways",
                     wrap: 160,
                     padding: 8
@@ -820,7 +992,7 @@
                 x: x3(ireland.gdp_per_energy),
                 y: y3(ireland.renewable_pct),
                 dx: 400 - x3(ireland.gdp_per_energy),
-                dy: 45 - y3(ireland.renewable_pct)
+                dy: 100 - y3(ireland.renewable_pct)
             }
         ] : [];
 
